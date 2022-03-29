@@ -1,8 +1,8 @@
 # portal
 
-Fast and simple routing with the
+Portal is a fast and simple routing framework powered by the
 [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern/exec)
-interface for Deno
+interface for Deno.
 
 ## Example
 
