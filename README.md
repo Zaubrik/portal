@@ -1,6 +1,8 @@
 # portal
 
-Fast and simple routing with the `URLPattern` interface for Deno
+Fast and simple routing with the
+[URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern/exec)
+interface for Deno
 
 ## Example
 
