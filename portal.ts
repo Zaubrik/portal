@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-unreachable no-unsafe-finally
 import {
   ConnInfo,
   listenAndServe,
@@ -35,6 +36,7 @@ type Route<S extends State = DefaultState> = {
   handlers: Handlers<S>;
   urlPattern: URLPattern;
 };
+// deno-lint-ignore no-explicit-any
 type DefaultState = Record<string, any>;
 type State = Record<string | number | symbol, unknown>;
 type Params = { [key: string]: string };

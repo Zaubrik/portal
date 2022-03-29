@@ -2,7 +2,7 @@ import { Portal } from "../mod.ts";
 
 const app = new Portal();
 
-app.get("/", (ctx) => new Response("Hello World\n"));
+app.get("/", (_ctx) => new Response("Hello World\n"));
 
 app.get(
   "/:hello",

@@ -1,4 +1,4 @@
-import { Portal, serveStatic } from "../mod.ts";
+import { errorFallback, Portal, serveStatic } from "../mod.ts";
 
 const app = new Portal({ start: 0 });
 
@@ -20,13 +20,11 @@ app.use((ctx) => {
   ctx.response.headers.set("X-Response-Time", `${ms}ms`);
 });
 
-app.catch((ctx) => new Response("Something went wrong", { status: 500 }));
+app.catch(errorFallback);
 
 app.finally((ctx) => {
   const rt = ctx.response.headers.get("X-Response-Time");
-  console.log(
-    `${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`,
-  );
+  console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`);
 });
 
 console.log("Listening on http://0.0.0.0:8080");

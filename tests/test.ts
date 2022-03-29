@@ -43,7 +43,7 @@ Deno.test("[portal] middleware", async function () {
     "/books/:id",
     (ctx) => new Response(ctx.url.host),
   );
-  app.use((ctx) => new Response("All routes and methods."));
+  app.use((_ctx) => new Response("All routes and methods."));
   assertEquals(
     await getResponseText(new Request("https://example.com/books/123")),
     "All routes and methods.",
@@ -55,25 +55,25 @@ Deno.test("[portal] catch and finally", async function () {
   const getResponseText = getResponseTextFromApp(app);
   app.get(
     "/books/:id",
-    (ctx) => {
+    (_ctx) => {
       throw new Error("upps");
     },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.id),
   );
-  app.catch((ctx) => new Response("caught"));
+  app.catch((_ctx) => new Response("caught"));
   assertEquals(
     await getResponseText(new Request("https://example.com/books/123")),
     "caught",
   );
   app.get(
     "/books/:id",
-    (ctx) => {
+    (_ctx) => {
       throw new Error("upps");
     },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.id),
   );
-  app.catch((ctx) => new Response("caught"));
-  app.finally((ctx) => new Response("finally"));
+  app.catch((_ctx) => new Response("caught"));
+  app.finally((_ctx) => new Response("finally"));
   assertEquals(
     await getResponseText(new Request("https://example.com/books/123")),
     "finally",
@@ -176,7 +176,7 @@ Deno.test("[portal] execution order", async function () {
   const getResponseText = getResponseTextFromApp(app);
   app.get(
     "/books/:id",
-    (ctx) => new Response("never"),
+    (_ctx) => new Response("never"),
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.id),
   );
   assertEquals(
@@ -185,8 +185,8 @@ Deno.test("[portal] execution order", async function () {
   );
   app.get(
     "/books/:id",
-    (ctx) => new Response("never"),
-    async (ctx) => {
+    (_ctx) => new Response("never"),
+    async (_ctx) => {
       await delay(10);
       return new Response("never");
     },
@@ -198,13 +198,13 @@ Deno.test("[portal] execution order", async function () {
   );
   app.get(
     "/books/:id",
-    (ctx) => new Response("never"),
-    async (ctx) => {
+    (_ctx) => new Response("never"),
+    async (_ctx) => {
       await delay(10);
       return new Response("never");
     },
   );
-  app.use((ctx) => new Response("middleware"));
+  app.use((_ctx) => new Response("middleware"));
   assertEquals(
     await getResponseText(new Request("https://example.com/books/123")),
     "middleware",

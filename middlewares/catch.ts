@@ -1,6 +1,6 @@
 import { Context } from "../portal.ts";
 
-export async function errorFallback(ctx: Context): Promise<Response> {
+export function errorFallback(ctx: Context) {
   if (ctx.error) {
     if (ctx.error instanceof Response) {
       return ctx.error;

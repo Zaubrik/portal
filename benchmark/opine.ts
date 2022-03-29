@@ -2,7 +2,7 @@ import { opine } from "https://deno.land/x/opine@2.1.3/mod.ts";
 
 const app = opine();
 
-app.get("/", function (req, res) {
+app.get("/", function (_req, res) {
   res.send("Hello World");
 });
 

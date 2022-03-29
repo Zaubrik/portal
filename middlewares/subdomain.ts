@@ -1,5 +1,4 @@
 import { Context } from "../portal.ts";
-import { join } from "./deps.ts";
 
 /**
  * Subdomain Middleware
