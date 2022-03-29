@@ -5,7 +5,11 @@ Fast and simple routing with the `URLPattern` interface for Deno
 ## Example
 
 ```ts
-import { Portal, serveStatic } from "https://deno.land/x/portal/mod.ts";
+import {
+  errorFallback,
+  Portal,
+  serveStatic,
+} from "https://deno.land/x/portal/mod.ts";
 
 const app = new Portal({ start: 0 });
 
@@ -27,7 +31,7 @@ app.use((ctx) => {
   ctx.response.headers.set("X-Response-Time", `${ms}ms`);
 });
 
-app.catch((ctx) => new Response("Something went wrong", { status: 500 }));
+app.catch(errorFallback);
 
 app.finally((ctx) => {
   const rt = ctx.response.headers.get("X-Response-Time");
