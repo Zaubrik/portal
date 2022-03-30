@@ -2,7 +2,7 @@ import { Portal } from "../mod.ts";
 
 const app = new Portal();
 
-app.get({ pathname: "/(|world)" }, (ctx) => new Response("Hello World"));
+app.get({ pathname: "/(|world)" }, (_ctx) => new Response("Hello World"));
 
 app.get(
   { pathname: "/:hello" },
