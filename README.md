@@ -1,7 +1,7 @@
 # portal
 
 Portal is a fast and simple routing framework powered by the
-[URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern/exec)
+[URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API)
 interface for Deno.
 
 ## Example
