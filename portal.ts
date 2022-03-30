@@ -51,7 +51,7 @@ export class Portal<S extends State = DefaultState> {
    * Creates routing functions.
    * ```ts
    * const getAndPost = app.add("GET", "POST");
-   * getAndPost("/getorpost/*", (ctx) => new Response("Hello"));
+   * getAndPost({ pathname: "/path/*" }, (ctx) => new Response("Hello"));
    *  ```
    */
   add = this.addRoutes(this.routes);
@@ -61,7 +61,7 @@ export class Portal<S extends State = DefaultState> {
    * Takes a `URLPatternInput` and one or multiple `Handlers`. It applies the
    * `Handlers` to the named HTTP method and the specified route.
    * ```ts
-   * app.connect("*", (ctx) => new Response("Hello"));
+   * app.connect({ pathname: "*" }, (ctx) => new Response("Hello"));
    * ```
    */
   connect = this.add("CONNECT");

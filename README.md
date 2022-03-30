@@ -81,7 +81,7 @@ Creates routing functions.
 
 ```ts
 const getAndPost = app.add("GET", "POST");
-getAndPost("/getorpost/*", (ctx) => new Response("Hello"));
+getAndPost({ pathname: "/path/*" }, (ctx) => new Response("Hello"));
 ```
 
 ##### get, post, delete, connect...
@@ -90,7 +90,7 @@ Takes a `URLPatternInput` and one or multiple `Handlers`. It applies the
 `Handlers` to the named HTTP method and the specified route.
 
 ```ts
-app.get("*", (ctx) => new Response("Hello"));
+app.get({ pathname: "*" }, (ctx) => new Response("Hello"));
 ```
 
 ##### use
