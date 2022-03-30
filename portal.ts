@@ -58,8 +58,8 @@ export class Portal<S extends State = DefaultState> {
   addCatch = this.addRoutes(this.catchRoutes);
   addFinally = this.addRoutes(this.finallyRoutes);
   /**
-   * Takes a `pathname` and one or multiple `Handlers`. It applies the `Handlers`
-   * to the named HTTP method and the specified route.
+   * Takes a `URLPatternInput` and one or multiple `Handlers`. It applies the
+   * `Handlers` to the named HTTP method and the specified route.
    * ```ts
    * app.connect("*", (ctx) => new Response("Hello"));
    * ```
@@ -93,7 +93,7 @@ export class Portal<S extends State = DefaultState> {
    * ```
    */
   use(...handlers: Handlers<S>) {
-    return this.all("*", ...handlers);
+    return this.all({ pathname: "*" }, ...handlers);
   }
 
   /**
@@ -103,7 +103,7 @@ export class Portal<S extends State = DefaultState> {
    * ```
    */
   catch(...handlers: Handlers<S>) {
-    return this.allCatch("*", ...handlers);
+    return this.allCatch({ pathname: "*" }, ...handlers);
   }
 
   /**
@@ -118,17 +118,17 @@ export class Portal<S extends State = DefaultState> {
    * ```
    */
   finally(...handlers: Handlers<S>) {
-    return this.allFinally("*", ...handlers);
+    return this.allFinally({ pathname: "*" }, ...handlers);
   }
 
   private addRoutes(routes: Route<S>[]) {
     return (...methods: Method[]) =>
-      (pathname: string, ...handlers: Handlers<S>) => {
+      (urlPatternInput: URLPatternInput, ...handlers: Handlers<S>) => {
         methods.forEach((method: Method) =>
           routes.push({
             method,
             handlers,
-            urlPattern: new URLPattern({ pathname }),
+            urlPattern: new URLPattern(urlPatternInput),
           })
         );
         return this;
@@ -144,9 +144,7 @@ export class Portal<S extends State = DefaultState> {
       const r = routes[i];
       if (
         (r.method === "ALL" || r.method === ctx.request.method) &&
-        (ctx.urlPatternResult = r.urlPattern.exec({
-          pathname: ctx.url.pathname,
-        })!)
+        (ctx.urlPatternResult = r.urlPattern.exec(ctx.url)!)
       ) {
         for (const fn of r.handlers) {
           ctx.response = await fn(ctx) ?? ctx.response;

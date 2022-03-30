@@ -2,10 +2,10 @@ import { Portal } from "../mod.ts";
 
 const app = new Portal();
 
-app.get("/", (_ctx) => new Response("Hello World\n"));
+app.get({ pathname: "/(|world)" }, (ctx) => new Response("Hello World"));
 
 app.get(
-  "/:hello",
+  { pathname: "/:hello" },
   (ctx) => {
     return new Response(
       `Oh, hello ${ctx.urlPatternResult.pathname.groups["hello"]}!`,
@@ -14,12 +14,12 @@ app.get(
 );
 
 app.get(
-  "/static/*",
+  { pathname: "/wild/*" },
   (ctx) => new Response(`wild: ${ctx.urlPatternResult.pathname.groups["0"]}`),
 );
 
 app.get(
-  "/books/:genre/:title?",
+  { pathname: "/books/:genre/:title?" },
   (ctx) =>
     new Response(
       `genre: ${ctx.urlPatternResult.pathname.groups["genre"]}, title: ${

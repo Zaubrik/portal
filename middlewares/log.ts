@@ -1,9 +1,5 @@
 import { Context } from "../portal.ts";
 
-/**
- * Adapted from https://deno.land/x/abc@v1.2.3/middleware/logger.ts
- */
-
 type Formatter = (ctx: Context) => string;
 
 export interface LoggerConfig {
@@ -24,6 +20,7 @@ export const DefaultLoggerConfig: LoggerConfig = {
   output: Deno.stdout,
 };
 
+/** Logs responses with a status unequal to 200. */
 export function logger(
   config: LoggerConfig = DefaultLoggerConfig,
 ) {

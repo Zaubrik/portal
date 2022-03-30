@@ -8,12 +8,15 @@ app.use((ctx) => {
 });
 
 app.get(
-  "/:hello",
+  { pathname: "/greeting/:hello" },
   (ctx) =>
     new Response(`Hello ${ctx.urlPatternResult.pathname.groups["hello"]}`),
 );
 
-app.get("*", serveStatic(new URL("./static", import.meta.url).pathname));
+app.get(
+  { pathname: "/(|index.html|cat.jpeg)" },
+  serveStatic(new URL("./static", import.meta.url)),
+);
 
 app.use((ctx) => {
   const ms = Date.now() - ctx.state.start;

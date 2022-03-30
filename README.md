@@ -21,12 +21,15 @@ app.use((ctx) => {
 });
 
 app.get(
-  "/:hello",
+  { pathname: "/greeting/:hello" },
   (ctx) =>
     new Response(`Hello ${ctx.urlPatternResult.pathname.groups["hello"]}`),
 );
 
-app.get("*", serveStatic(new URL("./static", import.meta.url).pathname));
+app.get(
+  { pathname: "/(|index.html|cat.jpeg)" },
+  serveStatic(new URL("./static", import.meta.url)),
+);
 
 app.use((ctx) => {
   const ms = Date.now() - ctx.state.start;
@@ -83,8 +86,8 @@ getAndPost("/getorpost/*", (ctx) => new Response("Hello"));
 
 ##### get, post, delete, connect...
 
-Takes a `pathname` and one or multiple `Handlers`. It applies the `Handlers` to
-the named HTTP method and the specified route.
+Takes a `URLPatternInput` and one or multiple `Handlers`. It applies the
+`Handlers` to the named HTTP method and the specified route.
 
 ```ts
 app.get("*", (ctx) => new Response("Hello"));
@@ -128,3 +131,7 @@ connections, upgrades them to TLS, and handles requests.
 ```ts
 await app.listen({ port: 8080 });
 ```
+
+## Todo
+
+- Add some tests for the middlewares.

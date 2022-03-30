@@ -18,7 +18,7 @@ Deno.test("[portal] overview", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (ctx) => new Response(ctx.url.pathname),
   );
   assertEquals(
@@ -26,7 +26,7 @@ Deno.test("[portal] overview", async function () {
     "/books/123",
   );
   app.get(
-    "*",
+    "http{s}?://example.com/*",
     (ctx) => new Response(ctx.url.host),
     (ctx) => new Response(ctx.url.pathname),
   );
@@ -40,7 +40,7 @@ Deno.test("[portal] middleware", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (ctx) => new Response(ctx.url.host),
   );
   app.use((_ctx) => new Response("All routes and methods."));
@@ -54,7 +54,7 @@ Deno.test("[portal] catch and finally", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (_ctx) => {
       throw new Error("upps");
     },
@@ -66,7 +66,7 @@ Deno.test("[portal] catch and finally", async function () {
     "caught",
   );
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (_ctx) => {
       throw new Error("upps");
     },
@@ -83,7 +83,7 @@ Deno.test("[portal] catch and finally", async function () {
 Deno.test("[portal] custom state", async function () {
   const app = new Portal({ counter: 10 });
   app.get(
-    "*",
+    { pathname: "*" },
     (ctx) => {
       ++ctx.state.counter;
     },
@@ -101,7 +101,7 @@ Deno.test("[portal] urlPatternResult", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.id),
   );
   assertEquals(
@@ -109,7 +109,7 @@ Deno.test("[portal] urlPatternResult", async function () {
     "123",
   );
   app.get(
-    "/books/:genre/:title?",
+    { pathname: "/books/:genre/:title?" },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.genre),
   );
   assertEquals(
@@ -117,7 +117,7 @@ Deno.test("[portal] urlPatternResult", async function () {
     "action",
   );
   app.get(
-    "/books/:genre/:title?",
+    { pathname: "/books/:genre/:title?" },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.title),
   );
   assertEquals(
@@ -125,7 +125,7 @@ Deno.test("[portal] urlPatternResult", async function () {
     "",
   );
   app.get(
-    "/books/:genre/:title?",
+    { pathname: "/books/:genre/:title?" },
     (ctx) =>
       new Response(
         `${ctx.urlPatternResult.pathname.groups.genre}: ${ctx.urlPatternResult.pathname.groups.title}`,
@@ -137,13 +137,26 @@ Deno.test("[portal] urlPatternResult", async function () {
     ),
     "action: circe",
   );
+  app.get(
+    "http{s}?://example.com/books/:genre+",
+    (ctx) =>
+      new Response(
+        `${ctx.urlPatternResult.pathname.groups.genre}`,
+      ),
+  );
+  assertEquals(
+    await getResponseText(
+      new Request("https://example.com/books/action/circe"),
+    ),
+    "action/circe",
+  );
 });
 
 Deno.test("[portal] urlPatternResult with wildcards", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "*",
+    { pathname: "*" },
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups["0"]),
   );
   assertEquals(
@@ -155,7 +168,7 @@ Deno.test("[portal] urlPatternResult with wildcards", async function () {
     "/books/action",
   );
   app.get(
-    "/*/:genre/*",
+    { pathname: "/*/:genre/*" },
     (ctx) =>
       new Response(
         `${ctx.urlPatternResult.pathname.groups["0"]}: ${
@@ -175,7 +188,7 @@ Deno.test("[portal] execution order", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (_ctx) => new Response("never"),
     (ctx) => new Response(ctx.urlPatternResult.pathname.groups.id),
   );
@@ -184,7 +197,7 @@ Deno.test("[portal] execution order", async function () {
     "123",
   );
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (_ctx) => new Response("never"),
     async (_ctx) => {
       await delay(10);
@@ -197,7 +210,7 @@ Deno.test("[portal] execution order", async function () {
     "123",
   );
   app.get(
-    "/books/:id",
+    { pathname: "/books/:id" },
     (_ctx) => new Response("never"),
     async (_ctx) => {
       await delay(10);
