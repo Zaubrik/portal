@@ -47,16 +47,6 @@ console.log("Listening on http://0.0.0.0:8080");
 await app.listen({ port: 8080 });
 ```
 
-## Benchmarks
-
-`wrk -c 100 -d 40 http://localhost:1234`
-
-| Framework  | Version | Requests/sec | Transfer/sec |
-| :--------- | :------ | -----------: | -----------: |
-| **Portal** | v0.0.2  |     22773.35 |       3.11MB |
-| Oak        | v10.5.1 |     19777.88 |       2.72MB |
-| Abc        | v1.3.3  |     15954.89 |       1.28MB |
-
 ## API
 
 ### Types
