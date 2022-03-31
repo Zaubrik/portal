@@ -157,9 +157,13 @@ export class Portal<S extends State = DefaultState> {
   private async handleContext(ctx: Context<S>): Promise<Response> {
     try {
       ctx = await this.invokeHandlers(ctx, this.routes);
-    } catch (error) {
-      ctx.error = error;
-      ctx = await this.invokeHandlers(ctx, this.catchRoutes);
+    } catch (errorOrResponse) {
+      if (errorOrResponse instanceof Response) {
+        ctx.response = errorOrResponse;
+      } else {
+        ctx.error = errorOrResponse;
+        ctx = await this.invokeHandlers(ctx, this.catchRoutes);
+      }
     } finally {
       ctx = await this.invokeHandlers(ctx, this.finallyRoutes);
       return ctx.response;

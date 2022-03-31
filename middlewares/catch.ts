@@ -6,9 +6,7 @@ import { Context } from "../portal.ts";
  */
 export function errorFallback(ctx: Context) {
   if (ctx.error) {
-    if (ctx.error instanceof Response) {
-      return ctx.error;
-    } else if (ctx.error instanceof URIError) {
+    if (ctx.error instanceof URIError) {
       return new Response("Bad Request", { status: 400 });
     } else if (ctx.error instanceof Deno.errors.NotFound) {
       return new Response("Not Found", { status: 404 });
