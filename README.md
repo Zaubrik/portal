@@ -99,7 +99,7 @@ app.use((ctx) => {
 ##### catch
 
 The passed `Handlers` will be executed when an exception has been thrown which
-is **not** a `Response` object. In this way a thrown `Response` object can
+is **not** a `Response` object. As a consequence a thrown `Response` object can
 shortcut the execution order directly to the `finally` handlers.
 
 ```ts
