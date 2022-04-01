@@ -176,7 +176,8 @@ export class Portal<S extends State = DefaultState> {
     return {
       state: this.state,
       url: new URL(request.url),
-      // NOTE: It will always be of the type `URLPatternResult` inside `Handlers`.
+      // NOTE: It will always be (correctly!) of the type `URLPatternResult`
+      // inside `Handlers`. See `.invokeHandlers`.
       urlPatternResult: null as unknown as URLPatternResult,
       error: null,
       connInfo,
