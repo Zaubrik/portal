@@ -1,5 +1,5 @@
-import { Portal } from "../portal.ts";
-import { assertEquals, delay } from "./deps.ts";
+import { Portal } from "./portal.ts";
+import { assertEquals, delay } from "./test_deps.ts";
 
 const connInfo = {
   localAddr: { transport: "tcp" as const, hostname: "127.0.0.1", port: 8080 },

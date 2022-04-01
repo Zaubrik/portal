@@ -1,8 +1,7 @@
 import { Context } from "../portal.ts";
 
 /**
- * Returns an appropriate `Response` according to the caught `Error` while
- * ignoring caught `Response` objects.
+ * Returns an appropriate `Response` according to the caught and passed `Error`.
  */
 export function errorFallback(ctx: Context) {
   if (ctx.error) {

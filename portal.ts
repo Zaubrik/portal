@@ -97,7 +97,9 @@ export class Portal<S extends State = DefaultState> {
   }
 
   /**
-   * The passed `Handlers` will be executed when an exception has been thrown.
+   * The passed `Handlers` will be executed when an exception has been thrown
+   * which is not a `Response` object. In this way a thrown `Response` object can
+   * shortcut the execution order directly to the `finally` handlers.
    * ```ts
    * app.catch((ctx) => new Response("Something went wrong", { status: 500 }));
    * ```

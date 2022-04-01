@@ -38,8 +38,7 @@ export function serveStatic(
   return async (ctx: Context) => {
     if (ctx.response.ok) return ctx.response;
     const subdomainStr = subdomain
-      ? (ctx.urlPatternResult.hostname.groups[subdomain] ?? "")
-        .replace(".", "/")
+      ? ctx.urlPatternResult.hostname.groups[subdomain].replace(".", "/")
       : "";
     const pathname = ctx.url.pathname[ctx.url.pathname.length - 1] === "/"
       ? ctx.url.pathname + home

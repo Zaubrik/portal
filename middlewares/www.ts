@@ -1,6 +1,6 @@
 import { Context } from "../portal.ts";
 
-/** Remove "www." and redirect. */
+/** Removes "www." and redirects with status `301`. */
 export function wwwRedirect(ctx: Context) {
   throw new Response(undefined, {
     headers: new Headers({
