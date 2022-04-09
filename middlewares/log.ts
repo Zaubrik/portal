@@ -5,21 +5,21 @@ export interface LoggerConfig {
   output: { rid: number };
 }
 
-export const DefaultFormatter = (ctx: Context): string => {
+const defaultLoggerConfig: LoggerConfig = {
+  formatter: defaultFormatter,
+  output: Deno.stdout,
+};
+
+function defaultFormatter(ctx: Context): string {
   const d = new Date().toISOString();
   const dateFmt = `[${d.slice(0, 10)} ${d.slice(11, 19)}]`;
   const log =
     `${dateFmt} "${ctx.request.method} ${ctx.request.url}" ${ctx.response.status}\n`;
   return log;
-};
-
-export const DefaultLoggerConfig: LoggerConfig = {
-  formatter: DefaultFormatter,
-  output: Deno.stdout,
-};
+}
 
 /** Logs responses outside of the range 200-299. */
-export function logger(config: LoggerConfig = DefaultLoggerConfig) {
+export function logger(config: LoggerConfig = defaultLoggerConfig) {
   return async (ctx: Context): Promise<void> => {
     if (!ctx.response.ok) {
       await Deno.write(
