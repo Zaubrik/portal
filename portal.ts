@@ -36,9 +36,10 @@ type Route<S extends State = DefaultState> = {
   handlers: Handlers<S>;
   urlPattern: URLPattern;
 };
+/** Any object can be assigned to the property `state` of the `Context` object. */
+export type State = Record<string | number | symbol, unknown>;
 // deno-lint-ignore no-explicit-any
 type DefaultState = Record<string, any>;
-type State = Record<string | number | symbol, unknown>;
 type Params = { [key: string]: string };
 
 /** Faciliates routing powered by the `URLPattern` interface. */
@@ -201,14 +202,22 @@ export class Portal<S extends State = DefaultState> {
    * ```
    */
   async listen(
-    listenOptions: Partial<Deno.ListenOptions>,
-    options: ServeInit & { certFile?: string; keyFile?: string } = {},
+    listenOptions: Partial<Deno.ListenOptions> & {
+      certFile?: string;
+      keyFile?: string;
+    },
+    options?: ServeInit,
   ) {
-    return options.certFile || options.keyFile
+    console.log(
+      `Listening on ${listenOptions.certFile ? "https" : "http"}://${
+        listenOptions.hostname ?? "0.0.0.0"
+      }:${listenOptions.port ?? 443}`,
+    );
+    return listenOptions.certFile || listenOptions.keyFile
       ? await listenAndServeTls(
         listenOptions,
-        options.certFile!,
-        options.keyFile!,
+        listenOptions.certFile!,
+        listenOptions.keyFile!,
         this.requestHandler,
         options,
       )
