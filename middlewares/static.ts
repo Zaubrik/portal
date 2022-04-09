@@ -1,14 +1,10 @@
 import { Context } from "../portal.ts";
 import { join, serveFile } from "./deps.ts";
 
-/**
- * A minimal static file server middleware.
- */
-
 type ServeFileOptions = {
   home?: string;
   enableCors?: boolean;
-  subdomain?: string;
+  subdomainGroup?: string;
 };
 
 function setCors(res: Response): void {
@@ -33,22 +29,23 @@ function setCors(res: Response): void {
  */
 export function serveStatic(
   root: URL | string,
-  { home = "index.html", enableCors = false, subdomain }: ServeFileOptions = {},
+  { home = "index.html", enableCors = false, subdomainGroup }:
+    ServeFileOptions = {},
 ) {
   return async (ctx: Context) => {
     if (ctx.response.ok) return ctx.response;
-    const subdomainStr = subdomain
-      ? ctx.urlPatternResult.hostname.groups[subdomain].replace(".", "/")
+    const rootStr = root instanceof URL ? root.pathname : root;
+    const subdomainStr = subdomainGroup
+      ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
+        .replaceAll(".", "/")
       : "";
-    const pathname = ctx.url.pathname[ctx.url.pathname.length - 1] === "/"
-      ? ctx.url.pathname + home
-      : ctx.url.pathname;
-    const absolutePath = join(
-      root instanceof URL ? root.pathname : root,
-      subdomainStr,
-      pathname,
-    );
-    const response = await serveFile(ctx.request, absolutePath);
+    const pathname = ctx.url.pathname;
+    const absolutePath = join(rootStr, subdomainStr, pathname);
+    const fileInfo = await Deno.stat(absolutePath);
+    const filePath = fileInfo.isDirectory
+      ? join(absolutePath, home)
+      : absolutePath;
+    const response = await serveFile(ctx.request, filePath);
     if (enableCors) setCors(response);
     return response;
   };
