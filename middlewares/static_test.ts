@@ -5,7 +5,7 @@ import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
 Deno.test("[static] overview", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
-  app.get({ pathname: "*" }, serveStatic(""));
+  app.get({ pathname: "*" }, serveStatic(new URL(import.meta.url)));
   assertEquals(
     await getResponseText(
       new Request(new URL(import.meta.url).href),

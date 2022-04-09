@@ -1,5 +1,5 @@
 import { Context } from "../portal.ts";
-import { join, serveFile } from "./deps.ts";
+import { fromFileUrl, join, serveFile } from "./deps.ts";
 
 type ServeFileOptions = {
   home?: string;
@@ -32,9 +32,9 @@ export function serveStatic(
   { home = "index.html", enableCors = false, subdomainGroup }:
     ServeFileOptions = {},
 ) {
+  const rootStr = root instanceof URL ? fromFileUrl(root) : root;
   return async (ctx: Context) => {
     if (ctx.response.ok) return ctx.response;
-    const rootStr = root instanceof URL ? root.pathname : root;
     const subdomainStr = subdomainGroup
       ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
         .replaceAll(".", "/")
