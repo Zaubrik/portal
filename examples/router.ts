@@ -30,5 +30,4 @@ app.get(
 
 app.use((ctx) => console.log(ctx.request.method, ctx.request.url));
 
-console.log("Listening on http://0.0.0.0:8080");
 await app.listen({ port: 8080 });

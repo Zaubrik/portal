@@ -1,18 +1,10 @@
 import { Portal } from "./portal.ts";
-import { assertEquals, delay } from "./test_deps.ts";
-
-const connInfo = {
-  localAddr: { transport: "tcp" as const, hostname: "127.0.0.1", port: 8080 },
-  remoteAddr: { transport: "tcp" as const, hostname: "127.0.0.1", port: 48951 },
-};
-
-function getResponseTextFromApp(app: Portal) {
-  return async (request: Request) => {
-    const response = await app.requestHandler(request, connInfo);
-    const responseText = await response.text();
-    return responseText;
-  };
-}
+import {
+  assertEquals,
+  connInfo,
+  delay,
+  getResponseTextFromApp,
+} from "./test_deps.ts";
 
 Deno.test("[portal] overview", async function () {
   const app = new Portal();

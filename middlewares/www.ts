@@ -1,11 +1,11 @@
 import { Context } from "../portal.ts";
 
-/** Removes "www." and redirects with status `301`. */
+/**
+ * Removes "www." and redirects by throwing a `Response` with status `301`.
+ * ```ts
+ * app.get({ hostname: "www.*" }, wwwRedirect);
+ * ```
+ */
 export function wwwRedirect(ctx: Context) {
-  throw new Response(undefined, {
-    headers: new Headers({
-      "Location": ctx.url.href.replace("www.", ""),
-    }),
-    status: 301,
-  });
+  throw Response.redirect(ctx.url.href.replace("www.", ""), 301);
 }

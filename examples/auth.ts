@@ -1,5 +1,7 @@
-import { Portal, verifyJwt } from "../mod.ts";
-import { create, getNumericDate, Header, Payload } from "./deps.ts";
+import { AuthState, verifyJwt } from "../mod.ts";
+import { create, getNumericDate, Header } from "./deps.ts";
+
+type State = AuthState | { foo: string };
 
 const key = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-512" },
@@ -10,7 +12,7 @@ const header: Header = {
   alg: "HS512",
   typ: "JWT",
 };
-const app = new Portal<{ payload: Payload }>({ payload: {} });
+const app = new Portal<State>({ payload: {}, foo: "bar" });
 
 app.get(
   { pathname: "/login" },
@@ -26,5 +28,4 @@ app.get(
   (ctx) => new Response(`Hello ${ctx.state.payload.iss}`),
 );
 
-console.log("Listening on http://0.0.0.0:8080");
 await app.listen({ port: 8080 });

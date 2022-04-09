@@ -10,7 +10,7 @@ export function errorFallback(ctx: Context) {
     } else if (ctx.error instanceof Deno.errors.NotFound) {
       return new Response("Not Found", { status: 404 });
     } else {
-      return new Response("Internal server error", { status: 500 });
+      return new Response("Internal Server Error", { status: 500 });
     }
   } else {
     throw Error("Never!");

@@ -45,7 +45,6 @@ app.finally((ctx) => {
   console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`);
 });
 
-console.log("Listening on http://0.0.0.0:8080");
 await app.listen({ port: 8080 });
 ```
 
