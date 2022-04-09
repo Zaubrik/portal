@@ -10,6 +10,6 @@ Deno.test("[static] overview", async function () {
     await getResponseText(
       new Request(new URL(import.meta.url).href),
     ),
-    await Deno.readTextFile(new URL(import.meta.url).pathname),
+    await Deno.readTextFile(new URL(import.meta.url)),
   );
 });
