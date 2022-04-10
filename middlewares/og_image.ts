@@ -1,4 +1,4 @@
-import { createOgImage } from "./og_image.ts";
+import { createOgImage } from "./deps.ts";
 import { Context } from "../portal.ts";
 
 /**
@@ -10,10 +10,7 @@ import { Context } from "../portal.ts";
  */
 export async function serveOgImage(ctx: Context): Promise<Response> {
   try {
-    const canvas = await createOgImage(
-      ctx.request,
-      decodeURIComponent(ctx.urlPatternResult.pathname.groups["text"]),
-    );
+    const canvas = await createOgImage(ctx.request);
     return new Response(canvas.toBuffer(), {
       headers: { "content-type": "image/png" },
     });
