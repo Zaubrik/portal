@@ -7,5 +7,5 @@ import { Context } from "../portal.ts";
  * ```
  */
 export function wwwRedirect(ctx: Context) {
-  throw Response.redirect(ctx.url.href.replace("www.", ""), 301);
+  throw Response.redirect(ctx.request.url.replace("www.", ""), 301);
 }

@@ -19,12 +19,12 @@ const emailAddresses = {
   def: "joe.smith@example.com",
 };
 
-function getSendConfig(id: string) {
+function getSendConfig(id: string, data: Record<string, unknown>) {
   const to = emailAddresses[id as keyof typeof emailAddresses];
   if (!to) {
     throw new Error("No email address was found.");
   }
-  return { ...sendConfig, to };
+  return { ...sendConfig, content: JSON.stringify({ ...data, id }) };
 }
 
 Deno.test("[smtp] overview", function () {
