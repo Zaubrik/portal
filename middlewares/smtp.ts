@@ -55,7 +55,7 @@ export function send(
           await client.close();
           return new Response(null, { status: 200, headers });
         } catch (_err) {
-          throw new Response("Internal Server Error", { status: 500 }, headers);
+          throw new Response("Internal Server Error", { status: 500, headers });
         }
       } else {
         throw new Error("The body's data must be an object.");
@@ -64,7 +64,7 @@ export function send(
       if (err instanceof Response) {
         throw err;
       } else {
-        throw new Response("Bad Request", { status: 400 }, headers);
+        throw new Response("Bad Request", { status: 400, headers });
       }
     }
   };
