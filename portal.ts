@@ -33,14 +33,31 @@ type Method =
   | "TRACE";
 type Route<S extends State = DefaultState> = {
   method: Method;
-  handlers: Handlers<S>;
   urlPattern: URLPattern;
+  handlers: Handlers<S>;
 };
 /** Any object can be assigned to the property `state` of the `Context` object. */
 export type State = Record<string | number | symbol, unknown>;
 // deno-lint-ignore no-explicit-any
 type DefaultState = Record<string, any>;
 type Params = { [key: string]: string };
+
+function errorFallback(ctx: Context) {
+  if (ctx.error) {
+    if (
+      ctx.error instanceof URIError ||
+      ctx.error instanceof Deno.errors.InvalidData
+    ) {
+      return new Response("Bad Request", { status: 400 });
+    } else if (ctx.error instanceof Deno.errors.NotFound) {
+      return new Response("Not Found", { status: 404 });
+    } else {
+      return new Response("Internal Server Error", { status: 500 });
+    }
+  } else {
+    throw Error("Never!");
+  }
+}
 
 /** Faciliates routing powered by the `URLPattern` interface. */
 export class Portal<S extends State = DefaultState> {
@@ -79,9 +96,10 @@ export class Portal<S extends State = DefaultState> {
   allCatch = this.addCatch("ALL");
   allFinally = this.addFinally("ALL");
 
-  /** Takes a `state` object which will be assigned to `ctx`. */
+  /** Takes a `state` object which will later be assigned to the `Context`. */
   constructor(state: S = {} as S) {
     this.state = state;
+    this.catch(errorFallback);
   }
 
   /**
@@ -99,8 +117,8 @@ export class Portal<S extends State = DefaultState> {
 
   /**
    * The passed `Handlers` will be executed when an exception has been thrown
-   * which is not a `Response` object. As a consequence a thrown `Response` object
-   * can shortcut the execution order directly to the `finally` handlers.
+   * which is not a `Response` object. As a consequence a thrown `Response` can
+   * shortcut the execution order directly to the `finally` handlers.
    * ```ts
    * app.catch((ctx) => new Response("Something went wrong", { status: 500 }));
    * ```
@@ -110,7 +128,7 @@ export class Portal<S extends State = DefaultState> {
   }
 
   /**
-   * The passed `Handlers` will be executed after all other `Handlers`.
+   * The passed `Handlers` will always be executed after all other `Handlers`.
    * ```ts
    * app.finally((ctx) => {
    *   const rt = ctx.response.headers.get("X-Response-Time");
@@ -177,8 +195,8 @@ export class Portal<S extends State = DefaultState> {
     return {
       state: this.state,
       url: new URL(request.url),
-      // NOTE: It will always be (correctly!) of the type `URLPatternResult`
-      // inside `Handlers`. See `.invokeHandlers`.
+      // NOTE: `urlPatternResult` will always be (correctly!) of the type
+      // `URLPatternResult` only inside of `Handlers`. See method `invokeHandlers`.
       urlPatternResult: null as unknown as URLPatternResult,
       error: null,
       connInfo,
@@ -209,9 +227,9 @@ export class Portal<S extends State = DefaultState> {
     options?: ServeInit,
   ) {
     console.log(
-      `Listening on ${listenOptions.certFile ? "https" : "http"}://${
-        listenOptions.hostname ?? "0.0.0.0"
-      }:${listenOptions.port ?? 443}`,
+      `Listening on ${
+        listenOptions.certFile || listenOptions.keyFile ? "https" : "http"
+      }://${listenOptions.hostname ?? "0.0.0.0"}:${listenOptions.port ?? 443}`,
     );
     return listenOptions.certFile || listenOptions.keyFile
       ? await listenAndServeTls(
