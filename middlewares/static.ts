@@ -17,13 +17,14 @@ function setCors(res: Response): void {
 }
 
 /**
- * Takes a `URL` or a `string` as absolute path and returns a handler function
- * which returns a `Response` containing the static file or throws an `Error`.
+ * Takes a `URL` or a `string` as absolute path and returns a `Handler` which
+ * returns a `Response` with the static file, throws an `Error` or throws a
+ * Response (if the resource is a directory and has no trailing `/`).
  * ```ts
  * app.get(
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
  *   serveStatic(new URL("./static", import.meta.url), {
- *     subdomain: "subdomain",
+ *     subdomainGroup: "subdomain",
  *   }),
  * );
  * ```
@@ -40,7 +41,7 @@ export function serveStatic(
   const rootStr = root instanceof URL ? fromFileUrl(root) : root;
   return async (ctx: Context) => {
     if (ctx.response.ok) return ctx.response;
-    const pathname = ctx.url.pathname;
+    const pathname = decodeURIComponent(ctx.url.pathname);
     const subdomainStr = subdomainGroup
       ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
         .replaceAll(".", "/")
