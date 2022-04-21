@@ -1,4 +1,4 @@
-import { errorFallback, Portal, serveStatic } from "../mod.ts";
+import { Portal, serveStatic } from "../mod.ts";
 
 const app = new Portal({ start: 0 });
 
@@ -22,8 +22,6 @@ app.use((ctx) => {
   const ms = Date.now() - ctx.state.start;
   ctx.response.headers.set("X-Response-Time", `${ms}ms`);
 });
-
-app.catch(errorFallback);
 
 app.finally((ctx) => {
   const rt = ctx.response.headers.get("X-Response-Time");
