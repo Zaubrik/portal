@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>URL Pattern Matcher</title>
+    <meta
+      name="description"
+      content="This is a service that enables you to find the matches of URL Patterns against URLs or individual URL components."
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./index.css" />
+    <script src="https://deno.land/x/refresh@1.0.0/client.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="paddingNormal">
+        <h1>Test your URL Pattern against URLs</h1>
+      </div>
+    </header>
+    <main>
+      <section>
+        <div class="flexContainer" id="container"></div>
+      </section>
+      <section>
+        <div class="flexContainer">
+          <div>
+            <header>
+              <h2>What is this?</h2>
+            </header>
+            <div class="paddingNormal">
+              <p>
+                This is a service that enables you to find the matches of your
+                URL Pattern against URLs or individual URL components. The
+                <a
+                  href="https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API"
+                  target="_blank"
+                  >URL Pattern API</a
+                >
+                is used by the URLPattern interface inside of
+                <a href="https://github.com/Zaubrik/portal" target="_blank"
+                  >Portal</a
+                >.
+              </p>
+            </div>
+          </div>
+          <div>
+            <header>
+              <h2>How does it work?</h2>
+            </header>
+            <div class="paddingNormal">
+              <p>
+                We use the <strong><code>exec()</code></strong> method of the
+                <a
+                  href="https://developer.mozilla.org/en-US/docs/Web/API/URLPattern"
+                  >URL Pattern interface</a
+                >
+                and display either a <i>match</i> or <i>miss</i>. Find out more
+                and deploy your own URL Pattern Matcher on
+                <a href="https://deno.land/" target="_blank">Deno</a> by
+                visiting
+                <a
+                  href="https://github.com/Zaubrik/portal/tree/main/url_pattern_ui"
+                  target="_blank"
+                  >GitHub</a
+                >.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="paddingNormal">
+          <p>
+            <i>Proudly hosted on</i>
+            <a href="https://zaubrik.com">Zaubrik</a>
+          </p>
+        </div>
+      </section>
+    </main>
+    <script src="./dist/index.js"></script>
+  </body>
+</html>

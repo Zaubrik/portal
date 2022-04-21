@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "serveUrlPattern": "deno run --allow-net --allow-read ./url_pattern_ui/server.ts",
+    // Needs a tsconfig.json for browser types. Fix soon.
+    "bundleUrlPattern": "deno bundle ./url_pattern_ui/src/index.ts > ./url_pattern_ui/dist/index.js"
+  },
+  "compilerOptions": {
+    // "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "importsNotUsedAsValues": "preserve"
+  }
+}
