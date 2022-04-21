@@ -2,12 +2,10 @@ import { Context } from "../portal.ts";
 import {
   ConnectConfig,
   ConnectConfigWithAuthentication,
-  quotedPrintableEncode,
   SendConfig,
   SmtpClient,
 } from "./deps.ts";
 
-export { quotedPrintableEncode, SmtpClient };
 export type { ConnectConfig, ConnectConfigWithAuthentication, SendConfig };
 export type Options = { isTls?: boolean; headers?: Headers };
 
@@ -19,7 +17,10 @@ function isObjectWide(obj: unknown): obj is Record<string, unknown> {
   );
 }
 
-/** Takes `ConnectConfig`, `SendConfig` and `Options` and sends an email. */
+/**
+ * Takes `ConnectConfig`, `SendConfig` and `Options`, sends an email with
+ * SMTP and returns or throws a `Response`.
+ */
 export function send(
   connectConfig: ConnectConfig | ConnectConfigWithAuthentication,
   sendConfigOrCb: SendConfig | {
