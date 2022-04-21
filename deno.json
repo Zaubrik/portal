@@ -5,6 +5,7 @@
     "bundleUrlPattern": "deno bundle ./url_pattern_ui/src/index.ts > ./url_pattern_ui/dist/index.js"
   },
   "compilerOptions": {
+    // NOTE: TypeScript has not implemented URLPattern yet!
     // "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
     "removeComments": true,
     "experimentalDecorators": true,
