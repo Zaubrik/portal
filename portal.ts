@@ -1,10 +1,5 @@
 // deno-lint-ignore-file no-unreachable no-unsafe-finally
-import {
-  ConnInfo,
-  listenAndServe,
-  listenAndServeTls,
-  ServeInit,
-} from "./deps.ts";
+import { ConnInfo, serve, ServeInit, serveTls } from "./deps.ts";
 
 /** The `Context` is accessible inside the `Handlers` as only argument. */
 export type Context<S extends State = DefaultState> = {
@@ -196,7 +191,7 @@ export class Portal<S extends State = DefaultState> {
       state: this.state,
       url: new URL(request.url),
       // NOTE: `urlPatternResult` will always be (correctly!) of the type
-      // `URLPatternResult` only inside of `Handlers`. See method `invokeHandlers`.
+      // `URLPatternResult` inside of the `Handlers`. See method `invokeHandlers`.
       urlPatternResult: null as unknown as URLPatternResult,
       error: null,
       connInfo,
@@ -219,30 +214,12 @@ export class Portal<S extends State = DefaultState> {
    * await app.listen({ port: 8080 })
    * ```
    */
-  async listen(
-    listenOptions: Partial<Deno.ListenOptions> & {
-      certFile?: string;
-      keyFile?: string;
-    },
-    options?: ServeInit,
-  ) {
-    console.log(
-      `Listening on ${
-        listenOptions.certFile || listenOptions.keyFile ? "https" : "http"
-      }://${listenOptions.hostname ?? "0.0.0.0"}:${listenOptions.port ?? 443}`,
-    );
-    return listenOptions.certFile || listenOptions.keyFile
-      ? await listenAndServeTls(
-        listenOptions,
-        listenOptions.certFile!,
-        listenOptions.keyFile!,
+  async listen(options: ServeInit & { keyFile?: string; certFile?: string }) {
+    return options.certFile && options.keyFile
+      ? await serveTls(
         this.requestHandler,
-        options,
+        options as ServeInit & { keyFile: string; certFile: string },
       )
-      : await listenAndServe(
-        listenOptions,
-        this.requestHandler,
-        options,
-      );
+      : await serve(this.requestHandler, options);
   }
 }
