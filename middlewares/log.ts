@@ -1,31 +1,71 @@
 import { Context } from "../portal.ts";
+import { log, LogConfig } from "./deps.ts";
 
-export interface LoggerConfig {
-  formatter: (ctx: Context) => string;
-  output: { rid: number };
+function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
+  return typeof configOrUrlToLogFile === "string" ||
+      configOrUrlToLogFile instanceof URL
+    ? {
+      handlers: {
+        console: new log.handlers.ConsoleHandler("DEBUG", {
+          formatter: "{msg}",
+        }),
+
+        file: new log.handlers.FileHandler("WARNING", {
+          filename: configOrUrlToLogFile instanceof URL
+            ? configOrUrlToLogFile.href
+            : configOrUrlToLogFile,
+          formatter: (logRecord) => {
+            const d = logRecord.datetime.toISOString();
+            const dateFmt = `${d.slice(0, 10)} ${d.slice(11, 19)}`;
+            return JSON.stringify({
+              levelName: logRecord.levelName,
+              msg: logRecord.msg,
+              date: dateFmt,
+              loggerName: logRecord.loggerName,
+            });
+          },
+        }),
+      },
+      loggers: {
+        // configure default logger available via short-hand methods above.
+        default: {
+          level: "DEBUG" as const,
+          handlers: ["console", "file"],
+        },
+      },
+    }
+    : configOrUrlToLogFile;
 }
 
-const defaultLoggerConfig: LoggerConfig = {
-  formatter: defaultFormatter,
-  output: Deno.stdout,
-};
-
-function defaultFormatter(ctx: Context): string {
-  const d = new Date().toISOString();
-  const dateFmt = `[${d.slice(0, 10)} ${d.slice(11, 19)}]`;
-  const log =
-    `${dateFmt} "${ctx.request.method} ${ctx.request.url}" ${ctx.response.status}\n`;
-  return log;
+function isBetween(x: number, min: number, max: number) {
+  return x >= min && x <= max;
 }
 
-/** Logs responses outside of the range 200-299. */
-export function logger(config: LoggerConfig = defaultLoggerConfig) {
+function createMessage(ctx: Context) {
+  return JSON.stringify({
+    url: ctx.request.url,
+    error: ctx.error,
+    status: ctx.response.status,
+  });
+}
+
+/**
+ * Takes a `LogConfig` and logs information about the request or error depending
+ * on the status code and error.
+ */
+export async function logger(
+  configOrUrlToLogFile: LogConfig | string | URL,
+  isDebug = true,
+) {
+  await log.setup(getConfig(configOrUrlToLogFile));
+  const logger = log.getLogger();
   return async (ctx: Context): Promise<void> => {
-    if (!ctx.response.ok) {
-      await Deno.write(
-        config.output.rid,
-        new TextEncoder().encode(config.formatter(ctx)),
-      );
+    if (!ctx.response.ok && isBetween(ctx.response.status, 500, 599)) {
+      logger.critical(createMessage(ctx));
+    } else if (ctx.error) {
+      logger.error(createMessage(ctx));
+    } else if (isDebug) {
+      logger.debug(createMessage(ctx));
     }
   };
 }
