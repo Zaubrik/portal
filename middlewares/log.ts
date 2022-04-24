@@ -59,7 +59,7 @@ export async function logger(
 ) {
   await log.setup(getConfig(configOrUrlToLogFile));
   const logger = log.getLogger();
-  return (ctx: Context): Promise<void> => {
+  return (ctx: Context): void => {
     if (!ctx.response.ok && isBetween(ctx.response.status, 500, 599)) {
       logger.critical(createMessage(ctx));
     } else if (ctx.error) {

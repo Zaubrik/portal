@@ -5,7 +5,7 @@ import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
 
 const logConfig = {
   handlers: {
-    console: new log.handlers.ConsoleHandler("DEBUG", {
+    console: new log.handlers.ConsoleHandler("CRITICAL", {
       formatter: "{msg}",
     }),
   },
