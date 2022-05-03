@@ -122,8 +122,6 @@ await app.listen({ port: 8080 });
 
 ## Todo
 
-- Add some tests for the middlewares.
-- Create a `UrlPattern` Tester UI.
 - Add `WebSocket` support when
   [WebSocketStream](https://deno.land/manual/runtime/http_server_apis#websocket-support)
   arrives.

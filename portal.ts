@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-unreachable no-unsafe-finally
-import { ConnInfo, serve, ServeInit, serveTls } from "./deps.ts";
+import { ConnInfo, serve, ServeInit, serveTls, ServeTlsInit } from "./deps.ts";
 
 /** The `Context` is accessible inside the `Handlers` as only argument. */
 export type Context<S extends State = DefaultState> = {
@@ -214,12 +214,9 @@ export class Portal<S extends State = DefaultState> {
    * await app.listen({ port: 8080 })
    * ```
    */
-  async listen(options: ServeInit & { keyFile?: string; certFile?: string }) {
-    return options.certFile && options.keyFile
-      ? await serveTls(
-        this.requestHandler,
-        options as ServeInit & { keyFile: string; certFile: string },
-      )
+  async listen(options: ServeInit | ServeTlsInit) {
+    return "certFile" in options || "keyFile" in options
+      ? await serveTls(this.requestHandler, options)
       : await serve(this.requestHandler, options);
   }
 }
