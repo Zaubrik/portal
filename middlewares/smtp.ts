@@ -21,7 +21,7 @@ export function send(
   },
   { isDryRun = false }: Options = {},
 ) {
-  if (isDryRun) return (ctx: Context) => new Response(null);
+  if (isDryRun) return (_ctx: Context) => new Response(null);
   const client = new SMTPClient(clientOptions);
   return async (ctx: Context) => {
     try {
