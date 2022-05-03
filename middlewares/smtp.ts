@@ -1,15 +1,7 @@
 import { Context } from "../portal.ts";
-import {
-  ConnectConfig,
-  ConnectConfigWithAuthentication,
-  SendConfig,
-  SmtpClient,
-} from "./deps.ts";
+import { ClientOptions, SendConfig, SMTPClient } from "./deps.ts";
 
-export type { ConnectConfig, ConnectConfigWithAuthentication, SendConfig };
-export type Options = { isTls?: boolean; headers?: Headers };
-
-const client = new SmtpClient();
+type Options = { isDryRun?: boolean };
 
 function isObjectWide(obj: unknown): obj is Record<string, unknown> {
   return (
@@ -18,17 +10,19 @@ function isObjectWide(obj: unknown): obj is Record<string, unknown> {
 }
 
 /**
- * Takes `ConnectConfig`, `SendConfig` and `Options`, sends an email with
- * SMTP and returns or throws a `Response`.
+ * Takes `ClientOptions` and `SendConfig` or a callback Config, sends an email
+ * with SMTP and returns or throws a `Response`.
  */
 export function send(
-  connectConfig: ConnectConfig | ConnectConfigWithAuthentication,
+  clientOptions: ClientOptions,
   sendConfigOrCb: SendConfig | {
     cb: ((id: string, data: Record<string, unknown>) => SendConfig);
     idGroup: string;
   },
-  { isTls = true, headers = new Headers() }: Options = {},
+  { isDryRun = false }: Options = {},
 ) {
+  if (isDryRun) return (ctx: Context) => new Response(null);
+  const client = new SMTPClient(clientOptions);
   return async (ctx: Context) => {
     try {
       if (
@@ -47,16 +41,11 @@ export function send(
               bodyData,
             )
             : { ...sendConfigOrCb, content: body };
-          if (isTls) {
-            await client.connectTLS(connectConfig);
-          } else {
-            await client.connect(connectConfig);
-          }
           await client.send(sendConfig);
           await client.close();
-          return new Response(null, { status: 200, headers });
+          return new Response(null, { status: 200 });
         } catch (_err) {
-          throw new Response("Internal Server Error", { status: 500, headers });
+          throw new Response("Internal Server Error", { status: 500 });
         }
       } else {
         throw new Error("The body's data must be an object.");
@@ -65,7 +54,7 @@ export function send(
       if (err instanceof Response) {
         throw err;
       } else {
-        throw new Response("Bad Request", { status: 400, headers });
+        throw new Response("Bad Request", { status: 400 });
       }
     }
   };

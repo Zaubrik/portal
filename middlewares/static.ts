@@ -3,18 +3,9 @@ import { fromFileUrl, join, serveFile } from "./deps.ts";
 
 type ServeFileOptions = {
   home?: string;
-  enableCors?: boolean;
   appendTrailingSlash?: boolean;
   subdomainGroup?: string;
 };
-
-function setCors(res: Response): void {
-  res.headers.append("access-control-allow-origin", "*");
-  res.headers.append(
-    "access-control-allow-headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Range",
-  );
-}
 
 /**
  * Takes a `URL` or a `string` as absolute path and returns a `Handler` which
@@ -33,7 +24,6 @@ export function serveStatic(
   root: URL | string,
   {
     home = "index.html",
-    enableCors = false,
     appendTrailingSlash = true,
     subdomainGroup,
   }: ServeFileOptions = {},
@@ -58,7 +48,6 @@ export function serveStatic(
       ? join(absolutePath, home)
       : absolutePath;
     const response = await serveFile(ctx.request, filePath);
-    if (enableCors) setCors(response);
     return response;
   };
 }

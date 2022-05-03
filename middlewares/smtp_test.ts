@@ -1,14 +1,18 @@
-import { ConnectConfigWithAuthentication, send, SendConfig } from "./smtp.ts";
+import { send } from "./smtp.ts";
 import { assertEquals } from "../test_deps.ts";
 
-const connectConfig: ConnectConfigWithAuthentication = {
-  hostname: "",
-  port: 465,
-  username: "",
-  password: "",
+const clientOptions = {
+  connection: {
+    hostname: "",
+    port: 465,
+    auth: {
+      username: "",
+      password: "",
+    },
+  },
 };
 
-const sendConfig: SendConfig = {
+const sendConfig = {
   from: "",
   to: "",
   subject: "",
@@ -29,10 +33,8 @@ function getSendConfig(id: string, data: Record<string, unknown>) {
 
 Deno.test("[smtp] overview", function () {
   assertEquals(
-    typeof send(connectConfig, { cb: getSendConfig, idGroup: "id" }, {
-      headers: new Headers({
-        "Access-Control-Allow-Origin": "*",
-      }),
+    typeof send(clientOptions, { cb: getSendConfig, idGroup: "id" }, {
+      isDryRun: true,
     }),
     "function",
   );
