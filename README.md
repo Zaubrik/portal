@@ -7,6 +7,12 @@ against a pattern. The pattern can contain capturing groups that extract parts
 of the matched URL. The best way to learn and test the URL Pattern API is using
 our free [URL Pattern User Interface](https://dev.zaubrik.com/urlpattern/).
 
+## API
+
+```bash
+deno doc https://deno.land/x/portal/mod.ts
+```
+
 ## Example
 
 ```ts
@@ -40,83 +46,6 @@ app.finally((ctx) => {
   console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`);
 });
 
-await app.listen({ port: 8080 });
-```
-
-## API
-
-### Types
-
-#### Context
-
-The `Context` is accessible inside the `Handlers` as only argument.
-
-#### Handlers
-
-Receives a `Context` object and returns a `Response` object or `undefined`.
-
-### Class
-
-#### Portal
-
-Faciliates routing powered by the `URLPattern` interface.
-
-##### add
-
-Creates routing functions.
-
-```ts
-const getAndPost = app.add("GET", "POST");
-getAndPost({ pathname: "/path/*" }, (ctx) => new Response("Hello"));
-```
-
-##### get, post, delete, connect...
-
-Takes a `URLPatternInput` and one or multiple `Handlers`. It applies the
-`Handlers` to the named HTTP method and the specified route.
-
-```ts
-app.get({ pathname: "*" }, (ctx) => new Response("Hello"));
-```
-
-##### use
-
-Adds one or multiple `Handlers` (middlewares) to all methods and routes.
-
-```ts
-app.use((ctx) => {
-  const start = Date.now();
-  ctx.state.start = start;
-});
-```
-
-##### catch
-
-The passed `Handlers` will be executed when an exception has been thrown which
-is **not** a `Response` object. As a consequence a thrown `Response` object can
-shortcut the execution order directly to the `finally` handlers.
-
-```ts
-app.catch((ctx) => new Response("Something went wrong", { status: 500 }));
-```
-
-##### finally
-
-The passed `Handlers` will be executed after all other `Handlers`.
-
-```ts
-app.finally((ctx) => {
-  const rt = ctx.response.headers.get("X-Response-Time");
-  console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`);
-});
-```
-
-##### listen
-
-Constructs a server, creates a listener on the given address, accepts incoming
-connections, upgrades them to TLS, and handles requests.
-
-```ts
 await app.listen({ port: 8080 });
 ```
 
