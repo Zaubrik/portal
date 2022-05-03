@@ -37,6 +37,7 @@ export type State = Record<string | number | symbol, unknown>;
 type DefaultState = Record<string, any>;
 type Params = { [key: string]: string };
 
+/** The default error fallback which invoked inside the `catch` statement first. */
 function errorFallback(ctx: Context) {
   if (ctx.error) {
     if (
@@ -86,12 +87,33 @@ export class Portal<S extends State = DefaultState> {
   post = this.add("POST");
   put = this.add("PUT");
   trace = this.add("TRACE");
+  connectCatch = this.addCatch("CONNECT");
+  deleteCatch = this.addCatch("DELETE");
+  getCatch = this.addCatch("GET");
+  headCatch = this.addCatch("HEAD");
+  optionsCatch = this.addCatch("OPTIONS");
+  patchCatch = this.addCatch("PATCH");
+  postCatch = this.addCatch("POST");
+  putCatch = this.addCatch("PUT");
+  traceCatch = this.addCatch("TRACE");
+  connectFinally = this.addFinally("CONNECT");
+  deleteFinally = this.addFinally("DELETE");
+  getFinally = this.addFinally("GET");
+  headFinally = this.addFinally("HEAD");
+  optionsFinally = this.addFinally("OPTIONS");
+  patchFinally = this.addFinally("PATCH");
+  postFinally = this.addFinally("POST");
+  putFinally = this.addFinally("PUT");
+  traceFinally = this.addFinally("TRACE");
   /** Takes a route and `Handlers` and applies those to all HTTP methods. */
   all = this.add("ALL");
   allCatch = this.addCatch("ALL");
   allFinally = this.addFinally("ALL");
 
-  /** Takes a `state` object which will later be assigned to the `Context`. */
+  /**
+   * Takes a `State` object which will later be assigned to the `Context` and
+   * adds the default error fallback to the `catchRoutes`.
+   */
   constructor(state: S = {} as S) {
     this.state = state;
     this.catch(errorFallback);
