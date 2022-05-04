@@ -17,7 +17,7 @@ export const connInfo = {
 
 export function getResponseTextFromApp<T extends State>(app: Portal<T>) {
   return async (request: Request) => {
-    const response = await app.requestHandler(request, connInfo);
+    const response = await app.handleRequest(request, connInfo);
     const responseText = await response.text();
     return responseText;
   };

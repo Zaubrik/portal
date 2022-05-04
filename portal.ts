@@ -222,8 +222,8 @@ export class Portal<S extends State = DefaultState> {
     };
   }
 
-  /** Handles the `Request` objects. It is only public for testing purposes.*/
-  requestHandler = async (
+  /** Handles individual HTTP requests. It is only public for testing purposes.*/
+  handleRequest = async (
     request: Request,
     connInfo: ConnInfo,
   ): Promise<Response> =>
@@ -238,7 +238,7 @@ export class Portal<S extends State = DefaultState> {
    */
   async listen(options: ServeInit | ServeTlsInit) {
     return "certFile" in options || "keyFile" in options
-      ? await serveTls(this.requestHandler, options)
-      : await serve(this.requestHandler, options);
+      ? await serveTls(this.handleRequest, options)
+      : await serve(this.handleRequest, options);
   }
 }

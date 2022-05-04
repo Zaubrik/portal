@@ -81,7 +81,7 @@ Deno.test("[portal] custom state", async function () {
     },
     (ctx) => new Response((++ctx.state.counter).toString()),
   );
-  const response = await app.requestHandler(
+  const response = await app.handleRequest(
     new Request("https://example.com/books/123"),
     connInfo,
   );
