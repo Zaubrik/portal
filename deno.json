@@ -8,9 +8,7 @@
     // NOTE: TypeScript has not implemented URLPattern yet!
     // "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
     "removeComments": true,
-    "experimentalDecorators": true,
     "strict": true,
-    "strictPropertyInitialization": false,
     "importsNotUsedAsValues": "preserve"
   }
 }
