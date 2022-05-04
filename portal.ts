@@ -37,7 +37,7 @@ export type State = Record<string | number | symbol, unknown>;
 type DefaultState = Record<string, any>;
 type Params = { [key: string]: string };
 
-/** The default error fallback which invoked inside the `catch` statement first. */
+/** The default error fallback that is called inside the `catch` statement first. */
 function errorFallback(ctx: Context) {
   if (ctx.error) {
     if (
