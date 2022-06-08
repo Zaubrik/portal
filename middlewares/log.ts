@@ -49,8 +49,6 @@ function isBetween(x: number, min: number, max: number) {
 }
 
 function createMessage(ctx: Context) {
-  console.log(ctx.error);
-  console.log(ctx.error?.message);
   return JSON.stringify(
     {
       status: ctx.response.status,
