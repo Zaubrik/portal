@@ -17,7 +17,7 @@ const logConfig = {
   },
 };
 
-Deno.test("[log] confirm return type void", async function () {
+Deno.test("confirm return type void", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(

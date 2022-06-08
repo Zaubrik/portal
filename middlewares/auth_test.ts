@@ -20,7 +20,7 @@ const header: Header = {
 const payload: Payload = { iss: "Joe" };
 const jwt = await create(header, payload, key);
 
-Deno.test("[auth] overview", async function () {
+Deno.test("overview", async function () {
   const app = new Portal<{ payload: typeof payload }>({ payload: {} });
   const getResponseText = getResponseTextFromApp(app);
   app.get(

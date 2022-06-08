@@ -4,7 +4,7 @@ import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
 
 const url = "http://0.0.0.0:8080/Hello%20World.png?theme=Light&font-size=100px";
 
-Deno.test("[og_image] overview", async function () {
+Deno.test("overview", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(

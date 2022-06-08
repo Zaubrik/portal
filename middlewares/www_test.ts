@@ -2,7 +2,7 @@ import { Portal } from "../portal.ts";
 import { wwwRedirect } from "./www.ts";
 import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
 
-Deno.test("[www] overview", async function () {
+Deno.test("overview", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(

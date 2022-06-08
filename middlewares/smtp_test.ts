@@ -31,7 +31,7 @@ function getSendConfig(id: string, data: Record<string, unknown>) {
   return { ...sendConfig, content: JSON.stringify({ ...data, id }) };
 }
 
-Deno.test("[smtp] overview", function () {
+Deno.test("overview", function () {
   assertEquals(
     typeof send(clientOptions, { cb: getSendConfig, idGroup: "id" }, {
       isDryRun: true,

@@ -6,7 +6,7 @@ import {
   getResponseTextFromApp,
 } from "./test_deps.ts";
 
-Deno.test("[portal] overview", async function () {
+Deno.test("overview", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
@@ -28,7 +28,7 @@ Deno.test("[portal] overview", async function () {
   );
 });
 
-Deno.test("[portal] middleware", async function () {
+Deno.test("apply middleware", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
@@ -42,7 +42,7 @@ Deno.test("[portal] middleware", async function () {
   );
 });
 
-Deno.test("[portal] catch and finally", async function () {
+Deno.test("catch and finally", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
@@ -72,7 +72,7 @@ Deno.test("[portal] catch and finally", async function () {
   );
 });
 
-Deno.test("[portal] custom state", async function () {
+Deno.test("custom state", async function () {
   const app = new Portal({ counter: 10 });
   app.get(
     { pathname: "*" },
@@ -89,7 +89,7 @@ Deno.test("[portal] custom state", async function () {
   assertEquals(responseText, "12");
 });
 
-Deno.test("[portal] urlPatternResult", async function () {
+Deno.test("urlPatternResult", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
@@ -144,7 +144,7 @@ Deno.test("[portal] urlPatternResult", async function () {
   );
 });
 
-Deno.test("[portal] urlPatternResult with wildcards", async function () {
+Deno.test("urlPatternResult with wildcards", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
@@ -176,7 +176,7 @@ Deno.test("[portal] urlPatternResult with wildcards", async function () {
   );
 });
 
-Deno.test("[portal] execution order", async function () {
+Deno.test("execution order", async function () {
   const app = new Portal();
   const getResponseText = getResponseTextFromApp(app);
   app.get(
