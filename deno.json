@@ -6,10 +6,11 @@
     "bundleUrlPattern": "deno bundle ./url_pattern_ui/src/index.ts > ./url_pattern_ui/dist/index.js"
   },
   "compilerOptions": {
-    // "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
+    "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
+    "importsNotUsedAsValues": "preserve",
     "removeComments": true,
     "strict": true,
-    "noImplicitOverride": true,
     "useUnknownInCatchVariables": true
+    // "noImplicitOverride": true
   }
 }
