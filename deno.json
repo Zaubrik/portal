@@ -9,7 +9,7 @@
     // "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
     "removeComments": true,
     "strict": true,
-    "noImplicitOverride": true
-    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true
   }
 }

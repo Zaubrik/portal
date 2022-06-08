@@ -1,4 +1,4 @@
-// deno-lint-ignore-file no-unreachable no-unsafe-finally
+// deno-lint-ignore-file no-unsafe-finally
 import { ConnInfo, serve, ServeInit, serveTls, ServeTlsInit } from "./deps.ts";
 
 /** The `Context` is accessible inside the `Handlers` as only argument. */
