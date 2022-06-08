@@ -1,20 +1,40 @@
 import { Context } from "../portal.ts";
 
 type AllowedItems = {
-  allowedOrigin?: string;
+  allowedOrigins?: string | string[];
   allowedHeaders?: string;
+  allowedMethods?: string;
 };
 
 /**
- * Takes a config of `AllowedItems` and returns a middleware which enables CORS
- * by adding headers to the `Response`.
+ * Takes an object of `AllowedItems` and returns a middleware which enables CORS
+ * by adding appropriate headers to the `Response`. If `allowedOrigins` is left
+ * empty then any host is allowed.
  */
 export function enableCors(
-  { allowedOrigin = "*", allowedHeaders = "*" }: AllowedItems = {},
+  { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
 ): (ctx: Context) => Response {
   return (ctx: Context) => {
-    ctx.response.headers.append("access-control-allow-origin", allowedOrigin);
-    ctx.response.headers.append("access-control-allow-headers", allowedHeaders);
+    if (typeof allowedOrigins === "string") {
+      ctx.response.headers.set("access-control-allow-origin", allowedOrigins);
+    } else {
+      const origin = ctx.request.headers.get("origin");
+      if (origin && allowedOrigins.includes(origin)) {
+        ctx.response.headers.set("access-control-allow-origin", origin);
+      }
+    }
+    if (typeof allowedHeaders === "string") {
+      ctx.response.headers.append(
+        "access-control-allow-headers",
+        allowedHeaders,
+      );
+    }
+    if (typeof allowedMethods === "string") {
+      ctx.response.headers.append(
+        "access-control-allow-meaders",
+        allowedMethods,
+      );
+    }
     return ctx.response;
   };
 }
