@@ -62,7 +62,6 @@ function createMessage(ctx: Context) {
 
 /**
  * Takes a `LogConfig` or `URL` and logs data depending on the status and error.
- *
  * ```ts
  * app.finally(await logger(new URL("./logs/log.txt", import.meta.url)));
  * ```

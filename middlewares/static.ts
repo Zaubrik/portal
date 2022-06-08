@@ -44,10 +44,10 @@ export function serveStatic(
     ) {
       throw Response.redirect(ctx.request.url + "/", 301);
     }
-    const filePath = fileInfo.isDirectory
+    const filepath = fileInfo.isDirectory
       ? join(absolutePath, home)
       : absolutePath;
-    const response = await serveFile(ctx.request, filePath);
+    const response = await serveFile(ctx.request, filepath);
     return response;
   };
 }
