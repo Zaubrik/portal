@@ -195,11 +195,13 @@ export class Portal<S extends State = DefaultState> {
   private async handleContext(ctx: Context<S>): Promise<Response> {
     try {
       ctx = await this.invokeHandlers(ctx, this.routes);
-    } catch (errorOrResponse) {
-      if (errorOrResponse instanceof Response) {
-        ctx.response = errorOrResponse;
+    } catch (caught) {
+      if (caught instanceof Response) {
+        ctx.response = caught;
       } else {
-        ctx.error = errorOrResponse;
+        ctx.error = caught instanceof Error
+          ? caught
+          : new Error("Not an instance of Error was thrown.");
         ctx = await this.invokeHandlers(ctx, this.catchRoutes);
       }
     } finally {
