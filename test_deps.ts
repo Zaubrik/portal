@@ -5,10 +5,10 @@ export { delay } from "https://deno.land/std@0.142.0/async/delay.ts";
 export {
   create,
   getNumericDate,
+  type Header,
+  type Payload,
   verify,
-} from "https://deno.land/x/djwt@v2.4/mod.ts";
-
-export type { Header, Payload } from "https://deno.land/x/djwt@v2.4/mod.ts";
+} from "https://deno.land/x/djwt@v2.7/mod.ts";
 
 export const connInfo = {
   localAddr: { transport: "tcp" as const, hostname: "127.0.0.1", port: 8080 },

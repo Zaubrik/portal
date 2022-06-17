@@ -5,7 +5,6 @@ import {
   create,
   getResponseTextFromApp,
   Header,
-  Payload,
 } from "../test_deps.ts";
 
 const key = await crypto.subtle.generateKey(
@@ -17,11 +16,11 @@ const header: Header = {
   alg: "HS512",
   typ: "JWT",
 };
-const payload: Payload = { iss: "Joe" };
+const payload = { iss: "Joe" };
 const jwt = await create(header, payload, key);
 
 Deno.test("overview", async function () {
-  const app = new Portal<{ payload: typeof payload }>({ payload: {} });
+  const app = new Portal<{ payload: typeof payload }>({ payload: { iss: "" } });
   const getResponseText = getResponseTextFromApp(app);
   app.get(
     { pathname: "/login" },

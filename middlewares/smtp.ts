@@ -1,17 +1,45 @@
 import { Context } from "../portal.ts";
-import { ClientOptions, SendConfig, SMTPClient } from "./deps.ts";
+import {
+  ClientOptions,
+  createHttpError,
+  isHttpError,
+  isObjectWide,
+  isResponse,
+  SendConfig,
+  SMTPClient,
+  Status,
+} from "./deps.ts";
 
 type Options = { isDryRun?: boolean };
-
-function isObjectWide(obj: unknown): obj is Record<string, unknown> {
-  return (
-    obj !== null && typeof obj === "object" && Array.isArray(obj) === false
-  );
-}
 
 /**
  * Takes `ClientOptions` and `SendConfig` or a callback Config, sends an email
  * with SMTP and returns or throws a `Response`.
+ * ```ts
+ * const clientOptions = {
+ *   connection: {
+ *     hostname: "",
+ *     port: 465,
+ *     tls: true,
+ *     auth: {
+ *       username: "",
+ *       password: "",
+ *     },
+ *   },
+ * };
+ *
+ * const sendConfig = {
+ *   from: "",
+ *   to: "",
+ *   bcc: "",
+ *   subject: "",
+ *   contact: "",
+ * };
+ *
+ * const smtpClient = new SMTPClient(clientOptions);
+ * await smtpClient.send(sendConfig);
+ * await smtpClient.close();
+ * ```
  */
 export function send(
   clientOptions: ClientOptions,
@@ -45,16 +73,16 @@ export function send(
           await client.close();
           return new Response(null, { status: 200 });
         } catch (_err) {
-          throw new Response("Internal Server Error", { status: 500 });
+          throw createHttpError(Status.InternalServerError);
         }
       } else {
         throw new Error("The body's data must be an object.");
       }
-    } catch (err) {
-      if (err instanceof Response) {
-        throw err;
+    } catch (errorOrResponse) {
+      if (isResponse(errorOrResponse) || isHttpError(errorOrResponse)) {
+        throw errorOrResponse;
       } else {
-        throw new Response("Bad Request", { status: 400 });
+        throw createHttpError(Status.BadRequest);
       }
     }
   };

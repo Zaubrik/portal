@@ -1,15 +1,23 @@
 import { Context } from "../portal.ts";
-import { fromFileUrl, join, serveFile } from "./deps.ts";
+import {
+  createHttpError,
+  getPathname,
+  isResponse,
+  join,
+  serveFile,
+  Status,
+} from "./deps.ts";
 
 type ServeFileOptions = {
   home?: string;
   appendTrailingSlash?: boolean;
+  checkIfNotFound?: boolean;
   subdomainGroup?: string;
 };
 
 /**
  * Takes a `URL` or a `string` as absolute path and returns a `Handler` which
- * returns a `Response` with the static file, throws an `Error` or throws a
+ * returns a `Response` with the static file, throws an `HttpError` or throws a
  * Response (if the resource is a directory and has no trailing `/`).
  * ```ts
  * app.get(
@@ -25,29 +33,34 @@ export function serveStatic(
   {
     home = "index.html",
     appendTrailingSlash = true,
+    checkIfNotFound = true,
     subdomainGroup,
   }: ServeFileOptions = {},
 ) {
-  const rootStr = root instanceof URL ? fromFileUrl(root) : root;
+  const rootStr = getPathname(root);
   return async (ctx: Context) => {
-    if (ctx.response.ok) return ctx.response;
-    const pathname = decodeURIComponent(ctx.url.pathname);
-    const subdomainStr = subdomainGroup
-      ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
-        .replaceAll(".", "/")
-      : "";
-    const absolutePath = join(rootStr, subdomainStr, pathname);
-    const fileInfo = await Deno.stat(absolutePath);
-    if (
-      appendTrailingSlash && fileInfo.isDirectory &&
-      absolutePath.slice(-1) !== "/"
-    ) {
-      throw Response.redirect(ctx.request.url + "/", 301);
+    if (checkIfNotFound && ctx.response.status !== Status.NotFound) return;
+    try {
+      const pathname = decodeURIComponent(ctx.url.pathname);
+      const subdomainStr = subdomainGroup
+        ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
+          .replaceAll(".", "/")
+        : "";
+      const absolutePath = join(rootStr, subdomainStr, pathname);
+      const fileInfo = await Deno.stat(absolutePath);
+      if (
+        appendTrailingSlash && fileInfo.isDirectory &&
+        absolutePath.slice(-1) !== "/"
+      ) {
+        throw Response.redirect(ctx.request.url + "/", 301);
+      }
+      return fileInfo.isDirectory
+        ? await serveFile(ctx.request, join(absolutePath, home))
+        : await serveFile(ctx.request, absolutePath, { fileInfo });
+    } catch (errorOrResponse) {
+      throw isResponse(errorOrResponse)
+        ? errorOrResponse
+        : createHttpError(Status.NotFound);
     }
-    const filepath = fileInfo.isDirectory
-      ? join(absolutePath, home)
-      : absolutePath;
-    const response = await serveFile(ctx.request, filepath);
-    return response;
   };
 }

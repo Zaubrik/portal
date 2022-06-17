@@ -1,5 +1,13 @@
 // deno-lint-ignore-file no-unsafe-finally
-import { ConnInfo, serve, ServeInit, serveTls, ServeTlsInit } from "./deps.ts";
+import {
+  ConnInfo,
+  isHttpError,
+  serve,
+  ServeInit,
+  serveTls,
+  ServeTlsInit,
+  STATUS_TEXT,
+} from "./deps.ts";
 
 /** The `Context` is accessible inside the `Handlers` as only argument. */
 export type Context<S extends State = DefaultState> = {
@@ -40,15 +48,14 @@ type Params = { [key: string]: string };
 /** The default error fallback that is called inside the `catch` statement first. */
 function errorFallback(ctx: Context) {
   if (ctx.error) {
-    if (
-      ctx.error instanceof URIError ||
-      ctx.error instanceof Deno.errors.InvalidData
-    ) {
-      return new Response("Bad Request", { status: 400 });
+    if (isHttpError(ctx.error)) {
+      return new Response(ctx.error.message, { status: ctx.error.status });
+    } else if (ctx.error instanceof URIError) {
+      return new Response(STATUS_TEXT[400], { status: 400 });
     } else if (ctx.error instanceof Deno.errors.NotFound) {
-      return new Response("Not Found", { status: 404 });
+      return new Response(STATUS_TEXT[404], { status: 404 });
     } else {
-      return new Response("Internal Server Error", { status: 500 });
+      return new Response(STATUS_TEXT[500], { status: 500 });
     }
   } else {
     throw Error("Never!");

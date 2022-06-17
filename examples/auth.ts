@@ -3,7 +3,7 @@ import {
   create,
   getNumericDate,
   Header,
-} from "https://deno.land/x/djwt@v2.4/mod.ts";
+} from "https://deno.land/x/djwt@v2.7/mod.ts";
 
 type State = AuthState & { foo: string };
 

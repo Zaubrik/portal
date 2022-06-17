@@ -6,3 +6,5 @@ export * from "./middlewares/auth.ts";
 export * from "./middlewares/smtp.ts";
 export * from "./middlewares/og_image.ts";
 export * from "./middlewares/cors.ts";
+export * from "./middlewares/webhooks.ts";
+export * from "./middlewares/fetch.ts";

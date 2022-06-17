@@ -1,12 +1,16 @@
 import { Context } from "../portal.ts";
-import { ensureFile, fromFileUrl, log, LogConfig } from "./deps.ts";
+import {
+  ensureFile,
+  fromFileUrl,
+  isString,
+  isUrl,
+  log,
+  LogConfig,
+} from "./deps.ts";
 
 async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
-  if (
-    typeof configOrUrlToLogFile === "string" ||
-    configOrUrlToLogFile instanceof URL
-  ) {
-    const pathname = configOrUrlToLogFile instanceof URL
+  if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
+    const pathname = isUrl(configOrUrlToLogFile)
       ? fromFileUrl(configOrUrlToLogFile)
       : configOrUrlToLogFile;
     await ensureFile(pathname);
