@@ -8,8 +8,13 @@ import {
   SendConfig,
   SMTPClient,
   Status,
+  tryToParse,
 } from "./deps.ts";
 
+type SendConfigOrCb = SendConfig | {
+  cb: (id: string, data: Record<string, unknown>) => SendConfig;
+  idGroup: string;
+};
 type Options = { isDryRun?: boolean };
 
 /**
@@ -33,7 +38,7 @@ type Options = { isDryRun?: boolean };
  *   to: "",
  *   bcc: "",
  *   subject: "",
- *   contact: "",
+ *   content: "",
  * };
  *
  * const smtpClient = new SMTPClient(clientOptions);
@@ -43,47 +48,48 @@ type Options = { isDryRun?: boolean };
  */
 export function send(
   clientOptions: ClientOptions,
-  sendConfigOrCb: SendConfig | {
-    cb: ((id: string, data: Record<string, unknown>) => SendConfig);
-    idGroup: string;
-  },
+  sendConfigOrCb: SendConfigOrCb,
   { isDryRun = false }: Options = {},
 ) {
-  if (isDryRun) return (_ctx: Context) => new Response(null);
+  if (isDryRun) return (_ctx: Context) => new Response();
   const client = new SMTPClient(clientOptions);
   return async (ctx: Context) => {
-    try {
-      if (
-        "idGroup" in sendConfigOrCb &&
-        !ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup]
-      ) {
-        throw new Error("Using a callback requires a group match.");
-      }
-      const body = await ctx.request.text();
-      const bodyData = JSON.parse(body);
+    if (
+      "idGroup" in sendConfigOrCb &&
+      !ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup]
+    ) {
+      throw createHttpError(
+        Status.InternalServerError,
+        "Using a callback requires a group match.",
+      );
+    }
+    const body = await ctx.request.text();
+    if ("idGroup" in sendConfigOrCb) {
+      const [bodyData, err] = tryToParse(body);
       if (isObjectWide(bodyData)) {
-        try {
-          const sendConfig = "idGroup" in sendConfigOrCb
-            ? sendConfigOrCb.cb(
-              ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup],
-              bodyData,
-            )
-            : { ...sendConfigOrCb, content: body };
-          await client.send(sendConfig);
-          await client.close();
-          return new Response(null, { status: 200 });
-        } catch (_err) {
-          throw createHttpError(Status.InternalServerError);
-        }
+        const sendConfig = sendConfigOrCb.cb(
+          ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup],
+          bodyData,
+        );
+        await sendEmail(client, sendConfig);
       } else {
-        throw new Error("The body's data must be an object.");
+        throw createHttpError(
+          Status.BadRequest,
+          "The body's data must be a JSON object.",
+        );
       }
-    } catch (errorOrResponse) {
-      if (isResponse(errorOrResponse) || isHttpError(errorOrResponse)) {
-        throw errorOrResponse;
-      } else {
-        throw createHttpError(Status.BadRequest);
-      }
+    } else {
+      await sendEmail(client, { ...sendConfigOrCb, content: body });
     }
   };
+}
+
+async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
+  try {
+    await client.send(sendConfig);
+    await client.close();
+    return new Response();
+  } catch (_err) {
+    throw createHttpError(Status.InternalServerError);
+  }
 }

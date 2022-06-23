@@ -8,7 +8,7 @@ Deno.test("overview", async function () {
   app.get({ pathname: "/books" }, enableCors());
   app.get(
     { pathname: "/toys" },
-    enableCors({ allowedOrigins: ["https://new.com"] }),
+    enableCors({ allowedOrigins: ["https://pet.com"] }),
   );
   app.get(
     { pathname: "/cars" },
@@ -22,7 +22,7 @@ Deno.test("overview", async function () {
   assertEquals(
     await getResponseText(
       new Request("https://example.com/books", {
-        headers: { origin: "https://new.com/books" },
+        headers: { origin: "https://pet.com/books" },
       }),
     ),
     "*",
@@ -30,17 +30,17 @@ Deno.test("overview", async function () {
   assertEquals(
     await getResponseText(
       new Request("https://example.com/toys", {
-        headers: { origin: "https://new.com" },
+        headers: { origin: "https://pet.com" },
       }),
     ),
-    "https://new.com",
+    "https://pet.com",
   );
   assertEquals(
     await getResponseText(
       new Request("https://example.com/cars", {
-        headers: { origin: "https://aaa.bbb.another.com" },
+        headers: { origin: "https://blog.news.another.com" },
       }),
     ),
-    "https://aaa.bbb.another.com",
+    "https://blog.news.another.com",
   );
 });

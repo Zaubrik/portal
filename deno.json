@@ -8,9 +8,9 @@
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
     "importsNotUsedAsValues": "preserve",
-    "removeComments": true,
     "strict": true,
-    "useUnknownInCatchVariables": true
-    // "noImplicitOverride": true
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": false,
+    "checkJs": true
   }
 }

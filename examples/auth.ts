@@ -1,4 +1,5 @@
-import { AuthState, Portal, verifyJwt } from "../mod.ts";
+import { Portal } from "../mod.ts";
+import { AuthState, verifyJwt } from "../middlewares/mod.ts";
 import {
   create,
   getNumericDate,

@@ -11,10 +11,10 @@ export {
   type SendConfig,
   SMTPClient,
 } from "https://deno.land/x/denomailer@1.2.0/mod.ts";
-export { runWithPipes } from "../sorcery/deno/subprocess.ts";
-export { verifyHmacSha } from "../sorcery/deno/crypto/hmac.js";
+export { runWithPipes } from "../util/subprocess.ts";
+export { verifyHmacSha } from "../util/crypto/hmac.js";
 export { getFilename, mergeUrl, type UrlProperties } from "../sorcery/path.js";
-export { getPathname } from "../sorcery/deno/path.ts";
+export { getPathname } from "../util/path.ts";
 export { equals } from "../sorcery/booleans/equality.js";
 export {
   isError,
@@ -23,6 +23,7 @@ export {
   isString,
   isUrl,
 } from "../sorcery/type.js";
+export { tryToParse } from "../sorcery/encoding.js";
 
 //
 export { createHttpError, isHttpError, Status } from "../deps.ts";

@@ -37,7 +37,7 @@ export function serveStatic(
     subdomainGroup,
   }: ServeFileOptions = {},
 ) {
-  const rootStr = getPathname(root);
+  const rootPath = getPathname(root);
   return async (ctx: Context) => {
     if (checkIfNotFound && ctx.response.status !== Status.NotFound) return;
     try {
@@ -46,13 +46,13 @@ export function serveStatic(
         ? ctx.urlPatternResult.hostname.groups[subdomainGroup]
           .replaceAll(".", "/")
         : "";
-      const absolutePath = join(rootStr, subdomainStr, pathname);
+      const absolutePath = join(rootPath, subdomainStr, pathname);
       const fileInfo = await Deno.stat(absolutePath);
       if (
         appendTrailingSlash && fileInfo.isDirectory &&
         absolutePath.slice(-1) !== "/"
       ) {
-        throw Response.redirect(ctx.request.url + "/", 301);
+        throw Response.redirect(ctx.request.url + "/", Status.MovedPermanently);
       }
       return fileInfo.isDirectory
         ? await serveFile(ctx.request, join(absolutePath, home))

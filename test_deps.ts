@@ -1,6 +1,10 @@
 import { Portal, State } from "./portal.ts";
 
-export { assertEquals } from "https://deno.land/std@0.142.0/testing/asserts.ts";
+export {
+  assertEquals,
+  assertNotEquals,
+  assertThrows,
+} from "https://deno.land/std@0.142.0/testing/asserts.ts";
 export { delay } from "https://deno.land/std@0.142.0/async/delay.ts";
 export {
   create,

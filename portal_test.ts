@@ -18,7 +18,7 @@ Deno.test("overview", async function () {
     "/books/123",
   );
   app.get(
-    "http{s}?://example.com/*",
+    "http{s}?://example.com/books/*",
     (ctx) => new Response(ctx.url.host),
     (ctx) => new Response(ctx.url.pathname),
   );
@@ -26,6 +26,11 @@ Deno.test("overview", async function () {
     await getResponseText(new Request("https://example.com/books/123")),
     "/books/123",
   );
+  const response = await app.handleRequest(
+    new Request("https://example.com/notFound/123"),
+    connInfo,
+  );
+  assertEquals(response.status, 404);
 });
 
 Deno.test("apply middleware", async function () {
@@ -214,4 +219,35 @@ Deno.test("execution order", async function () {
     await getResponseText(new Request("https://example.com/books/123")),
     "middleware",
   );
+});
+
+Deno.test("method not allowed header", async function () {
+  const app = new Portal();
+  const getResponseText = getResponseTextFromApp(app);
+  app.get(
+    { pathname: "/books/:id" },
+    (ctx) => new Response(ctx.url.pathname),
+  );
+  const response = await app.handleRequest(
+    new Request("https://example.com/books/123"),
+    connInfo,
+  );
+  assertEquals(response.headers.get("Accept"), null);
+
+  app.post(
+    { pathname: "/books/science/:id" },
+    (ctx) => new Response(ctx.url.pathname),
+  );
+
+  app.delete(
+    { pathname: "/books/science/:id" },
+    (ctx) => new Response(ctx.url.pathname),
+  );
+
+  const response2 = await app.handleRequest(
+    new Request("https://example.com/books/science/123"),
+    connInfo,
+  );
+  assertEquals(response2.headers.get("Accept"), "POST, DELETE");
+  assertEquals(response2.status, 405);
 });

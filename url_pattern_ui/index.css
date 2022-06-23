@@ -59,6 +59,9 @@
 *::after {
   box-sizing: inherit;
 }
+:not(:defined) {
+  display: none;
+}
 body {
   margin: 0 auto;
   color: var(--textColor);

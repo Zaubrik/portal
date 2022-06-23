@@ -1,4 +1,5 @@
-import { Portal, serveStatic } from "../mod.ts";
+import { Portal } from "../mod.ts";
+import { serveStatic } from "../middlewares/mod.ts";
 
 const app = new Portal({ start: 0 });
 app.get(

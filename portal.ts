@@ -6,6 +6,7 @@ import {
   ServeInit,
   serveTls,
   ServeTlsInit,
+  Status,
   STATUS_TEXT,
 } from "./deps.ts";
 
@@ -51,11 +52,17 @@ function errorFallback(ctx: Context) {
     if (isHttpError(ctx.error)) {
       return new Response(ctx.error.message, { status: ctx.error.status });
     } else if (ctx.error instanceof URIError) {
-      return new Response(STATUS_TEXT[400], { status: 400 });
+      return new Response(STATUS_TEXT[Status.BadRequest], {
+        status: Status.BadRequest,
+      });
     } else if (ctx.error instanceof Deno.errors.NotFound) {
-      return new Response(STATUS_TEXT[404], { status: 404 });
+      return new Response(STATUS_TEXT[Status.NotFound], {
+        status: Status.NotFound,
+      });
     } else {
-      return new Response(STATUS_TEXT[500], { status: 500 });
+      return new Response(STATUS_TEXT[Status.InternalServerError], {
+        status: Status.InternalServerError,
+      });
     }
   } else {
     throw Error("Never!");
@@ -187,12 +194,32 @@ export class Portal<S extends State = DefaultState> {
     const len = routes.length;
     for (let i = 0; i < len; i++) {
       const r = routes[i];
-      if (
-        (r.method === "ALL" || r.method === ctx.request.method) &&
-        (ctx.urlPatternResult = r.urlPattern.exec(ctx.url)!)
-      ) {
-        for (const fn of r.handlers) {
-          ctx.response = await fn(ctx) ?? ctx.response;
+      if (r.method === "ALL" || r.method === ctx.request.method) {
+        if (ctx.urlPatternResult = r.urlPattern.exec(ctx.url)!) {
+          for (const fn of r.handlers) {
+            ctx.response = await fn(ctx) ?? ctx.response;
+          }
+        }
+      }
+    }
+    return ctx;
+  }
+
+  private setMethodNotAllowedHeader(
+    ctx: Context<S>,
+    routes: Route<S>[],
+  ): Context<S> {
+    const len = routes.length;
+    for (let i = 0; i < len; i++) {
+      const r = routes[i];
+      if (r.method !== "ALL" && r.method !== ctx.request.method) {
+        if (r.urlPattern.exec(ctx.url)) {
+          if (ctx.response.status !== Status.MethodNotAllowed) {
+            ctx.response = new Response(STATUS_TEXT[Status.MethodNotAllowed], {
+              status: Status.MethodNotAllowed,
+            });
+          }
+          ctx.response.headers.append("Accept", r.method);
         }
       }
     }
@@ -212,7 +239,14 @@ export class Portal<S extends State = DefaultState> {
         ctx = await this.invokeHandlers(ctx, this.catchRoutes);
       }
     } finally {
+      if (ctx.response.status === Status.NotFound) {
+        ctx = this.setMethodNotAllowedHeader(ctx, [
+          ...this.routes,
+          ...this.catchRoutes,
+        ]);
+      }
       ctx = await this.invokeHandlers(ctx, this.finallyRoutes);
+
       return ctx.response;
     }
   }
@@ -227,7 +261,9 @@ export class Portal<S extends State = DefaultState> {
       error: null,
       connInfo,
       request,
-      response: new Response("Not Found", { status: 404 }),
+      response: new Response(STATUS_TEXT[Status.NotFound], {
+        status: Status.NotFound,
+      }),
     };
   }
 
