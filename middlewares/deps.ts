@@ -1,6 +1,10 @@
 export { fromFileUrl, join } from "https://deno.land/std@0.143.0/path/mod.ts";
 export { ensureFile } from "https://deno.land/std@0.143.0/fs/mod.ts";
-export { serveFile } from "https://deno.land/std@0.143.0/http/file_server.ts";
+export {
+  serveDir,
+  type ServeDirOptions,
+  serveFile,
+} from "https://deno.land/std@0.143.0/http/file_server.ts";
 export * as log from "https://deno.land/std@0.143.0/log/mod.ts";
 export type { LogConfig } from "https://deno.land/std@0.143.0/log/mod.ts";
 export * as base64 from "https://deno.land/std@0.143.0/encoding/base64.ts";
