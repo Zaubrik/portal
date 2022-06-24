@@ -105,7 +105,7 @@ export function pullRepository(
         const name = repository.name;
         if (directoryPaths.some(repoNamesAreEqual(name))) {
           const directory = directoryPaths.find(repoNamesAreEqual(name));
-          const cloneResult = await runWithPipes(
+          const pullResult = await runWithPipes(
             `git -C ${directory}/${name} pull ${ghBaseUrlWithToken}/${name}`,
           );
         }
