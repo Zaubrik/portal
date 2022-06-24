@@ -1,5 +1,5 @@
 import { Context } from "../portal.ts";
-import { getPathname, serveDir, ServeDirOptions } from "./deps.ts";
+import { getPathname, serveDir, ServeDirOptions, Status } from "./deps.ts";
 
 /**
  * Takes a `URL` or a `string` as absolute path and serves the files under the
@@ -13,7 +13,7 @@ import { getPathname, serveDir, ServeDirOptions } from "./deps.ts";
  */
 export function serveStatic(
   fsRoot: URL | string,
-  options?: ServeDirOptions & { checkIfNotFound?: boolean } = {},
+  options: ServeDirOptions & { checkIfNotFound?: boolean } = {},
 ) {
   options.fsRoot = getPathname(fsRoot);
   options.quiet ??= true;

@@ -6,7 +6,7 @@ import {
   getFilename,
   getPathname,
   isError,
-  isResponse,
+  isObjectWide,
   runWithPipes,
   Status,
   verifyHmacSha,
@@ -22,60 +22,103 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
     );
     if (
       xHubSignature256OrNull && await verifyHmacSha(
-        xHubSignature256OrNull,
+        xHubSignature256OrNull.slice(7),
         "HS256",
         ghWebhooksSecret,
         JSON.stringify(payload),
       )
     ) {
       console.log("webhook is verified!");
-      ctx.state.webhookPayload = payload;
+      if (isObjectWide(payload)) {
+        ctx.state.webhookPayload = payload;
+      } else {
+        throw createHttpError(Status.BadRequest);
+      }
     } else {
       throw createHttpError(Status.Unauthorized);
     }
   };
 }
 
+function getDirectoryPaths(directories: (string | URL)[]) {
+  const directoryPaths = directories
+    .map(getPathname)
+    .map(removeTrailingSlash);
+  const hasMatchingSubdirs = directoryPaths.every((dir) => {
+    const subDirectory = `${dir}/${getFilename(dir)}`;
+    return Deno.statSync(subDirectory).isDirectory;
+  });
+  if (!hasMatchingSubdirs) {
+    throw new Error(
+      "The directory tree for the GitHub repositories is incorrect.",
+    );
+  }
+  return directoryPaths;
+}
+
 function removeTrailingSlash(path: string) {
   return path[-1] === "/" ? path.slice(0, -1) : path;
 }
 
-export function pullRepository(
-  gitDirectories: (string | URL)[],
+function repoNamesAreEqual(name: string) {
+  return (dir: string) => equals(name)(getFilename(dir));
+}
+
+export function storeRepositoryWithTagName(
+  directories: (string | URL)[],
   ghBaseUrlWithToken?: string,
 ) {
-  const directoryPaths = gitDirectories
-    .map(getPathname)
-    .map(removeTrailingSlash);
+  const directoryPaths = getDirectoryPaths(directories);
   return async (ctx: Context<WebhooksState>) => {
     try {
-      if (ctx.state.webhookPayload) {
-        const { repository, hook } = ctx.state.webhookPayload;
-        if (hook) throw new Response();
-        if (repository) {
-          const repoNamesAreEqual = (dir: string) =>
-            equals(repository.name)(getFilename(dir));
-          if (directoryPaths.some(repoNamesAreEqual)) {
-            const gitDirectory = directoryPaths.find(repoNamesAreEqual);
-            const pullResult = await runWithPipes(
-              `git -C ${gitDirectory} pull ${ghBaseUrlWithToken}/${repository.name}`,
-            );
-            throw new Response();
-          } else {
-            throw new Error("No matching repository name.");
-          }
-        } else {
-          throw new Error("No property 'repository' in webhook payload.");
+      const { repository, hook, ref, ref_type } = ctx.state.webhookPayload;
+      if (isObjectWide(repository) && !hook && ref_type === "tag" && ref) {
+        const name = repository.name;
+        if (directoryPaths.some(repoNamesAreEqual(name))) {
+          const directory = directoryPaths.find(repoNamesAreEqual(name));
+          const cloneResult = await runWithPipes(
+            `git -C ${directory} clone ${ghBaseUrlWithToken}/${name} ${name}@${ref}`,
+          );
         }
-      } else {
-        throw new Error("No webhook payload.");
       }
     } catch (errorOrResponse) {
-      throw isResponse(errorOrResponse) ? errorOrResponse : createHttpError(
+      throw createHttpError(
         Status.InternalServerError,
-        isError(errorOrResponse) ? errorOrResponse.message : undefined,
+        isError(errorOrResponse)
+          ? errorOrResponse.message
+          : "[non-error thrown]",
       );
     }
+    throw new Response();
+  };
+}
+
+export function pullRepository(
+  directories: (string | URL)[],
+  ghBaseUrlWithToken?: string,
+) {
+  const directoryPaths = getDirectoryPaths(directories);
+  return async (ctx: Context<WebhooksState>) => {
+    try {
+      const { repository, hook } = ctx.state.webhookPayload;
+      if (isObjectWide(repository) && !hook) {
+        const name = repository.name;
+        if (directoryPaths.some(repoNamesAreEqual(name))) {
+          const directory = directoryPaths.find(repoNamesAreEqual(name));
+          const cloneResult = await runWithPipes(
+            `git -C ${directory}/${name} pull ${ghBaseUrlWithToken}/${name}`,
+          );
+        }
+      }
+    } catch (errorOrResponse) {
+      throw createHttpError(
+        Status.InternalServerError,
+        isError(errorOrResponse)
+          ? errorOrResponse.message
+          : "[non-error thrown]",
+      );
+    }
+    throw new Response();
   };
 }
 
