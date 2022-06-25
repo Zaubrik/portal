@@ -64,6 +64,23 @@ function repoNamesAreEqual(name: string) {
   return (dir: string) => equals(name)(getFilename(dir));
 }
 
+function getTag(name) {
+  const lastIndex = name.lastIndexOf("@");
+  return lastIndex === -1 ? name : name.slice(lastIndex + 1);
+}
+
+async function createTagsList(dirPath: string | URL) {
+  const directory = getPathname(dirPath);
+  const names: string[] = [];
+  for await (const dirEntry of Deno.readDir(directory)) {
+    if (dirEntry.isDirectory && dirEntry.name.includes("@")) {
+      names.push(dirEntry.name);
+    }
+  }
+
+  return names.sort().map(getTag).join("\n");
+}
+
 export function cloneRepositoryWithTagName(
   directories: (string | URL)[],
   ghBaseUrlWithToken?: string,
@@ -75,10 +92,14 @@ export function cloneRepositoryWithTagName(
       const { repository, hook, ref, ref_type } = ctx.state.webhookPayload;
       if (isObjectWide(repository) && !hook && ref_type === "tag" && ref) {
         const name = repository.name;
-        if (directoryPaths.some(repoNamesAreEqual(name))) {
-          const directory = directoryPaths.find(repoNamesAreEqual(name));
+        const directory = directoryPaths.find(repoNamesAreEqual(name));
+        if (directory) {
           const cloneResult = await runWithPipes(
             `git -C ${directory} clone ${ghBaseUrlWithToken}/${name} ${name}@${ref}`,
+          );
+          await Deno.writeTextFile(
+            `${directory}/tags.txt`,
+            await (createTagsList(directory)),
           );
         }
       }
@@ -104,8 +125,8 @@ export function pullRepository(
       const { repository, hook } = ctx.state.webhookPayload;
       if (isObjectWide(repository) && !hook) {
         const name = repository.name;
-        if (directoryPaths.some(repoNamesAreEqual(name))) {
-          const directory = directoryPaths.find(repoNamesAreEqual(name));
+        const directory = directoryPaths.find(repoNamesAreEqual(name));
+        if (directory) {
           const pullResult = await runWithPipes(
             `git -C ${directory}/${name} pull ${ghBaseUrlWithToken}/${name}`,
           );

@@ -1,10 +1,10 @@
-export { serve, serveTls } from "https://deno.land/std@0.143.0/http/server.ts";
+export { serve, serveTls } from "https://deno.land/std@0.145.0/http/server.ts";
 
 export type {
   ConnInfo,
   ServeInit,
   ServeTlsInit,
-} from "https://deno.land/std@0.143.0/http/server.ts";
+} from "https://deno.land/std@0.145.0/http/server.ts";
 
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 
