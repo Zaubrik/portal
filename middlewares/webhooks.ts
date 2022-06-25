@@ -20,12 +20,6 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
     const xHubSignature256OrNull = ctx.request.headers.get(
       "X-Hub-Signature-256",
     );
-    console.log(
-      "xHubSignature256OrNull.slice(7):",
-      xHubSignature256OrNull.slice(7),
-    );
-    console.log("ghWebhooksSecret", ghWebhooksSecret);
-    console.log("JSON.stringify(payload)", JSON.stringify(payload).length);
     if (
       xHubSignature256OrNull && await verifyHmacSha(
         xHubSignature256OrNull.slice(7),
