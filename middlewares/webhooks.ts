@@ -20,6 +20,12 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
     const xHubSignature256OrNull = ctx.request.headers.get(
       "X-Hub-Signature-256",
     );
+    console.log(
+      "xHubSignature256OrNull.slice(7):",
+      xHubSignature256OrNull.slice(7),
+    );
+    console.log("ghWebhooksSecret", ghWebhooksSecret);
+    console.log("JSON.stringify(payload)", JSON.stringify(payload).length);
     if (
       xHubSignature256OrNull && await verifyHmacSha(
         xHubSignature256OrNull.slice(7),
@@ -64,13 +70,14 @@ function repoNamesAreEqual(name: string) {
   return (dir: string) => equals(name)(getFilename(dir));
 }
 
-export function storeRepositoryWithTagName(
+export function cloneRepositoryWithTagName(
   directories: (string | URL)[],
   ghBaseUrlWithToken?: string,
 ) {
   const directoryPaths = getDirectoryPaths(directories);
   return async (ctx: Context<WebhooksState>) => {
     try {
+      // https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
       const { repository, hook, ref, ref_type } = ctx.state.webhookPayload;
       if (isObjectWide(repository) && !hook && ref_type === "tag" && ref) {
         const name = repository.name;
