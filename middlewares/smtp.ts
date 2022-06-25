@@ -53,7 +53,7 @@ export function send(
 ) {
   if (isDryRun) return (_ctx: Context) => new Response();
   const client = new SMTPClient(clientOptions);
-  return async (ctx: Context) => {
+  return async (ctx: Context): Promise<Response> => {
     if (
       "idGroup" in sendConfigOrCb &&
       !ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup]
@@ -71,20 +71,20 @@ export function send(
           ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup],
           bodyData,
         );
-        await sendEmail(client, sendConfig);
+        return await sendEmail(client, sendConfig);
       } else {
         throw createHttpError(
           Status.BadRequest,
-          "The body's data must be a JSON object.",
+          "The body's data is not a JSON object.",
         );
       }
     } else {
-      await sendEmail(client, { ...sendConfigOrCb, content: body });
+      return await sendEmail(client, { ...sendConfigOrCb, content: body });
     }
   };
 }
 
-async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
+export async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
   try {
     await client.send(sendConfig);
     await client.close();

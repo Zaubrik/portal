@@ -22,6 +22,7 @@ export { getPathname } from "../util/path.ts";
 export { equals } from "../sorcery/booleans/equality.js";
 export {
   isError,
+  isNotNull,
   isObjectWide,
   isResponse,
   isString,
@@ -30,4 +31,12 @@ export {
 export { tryToParse } from "../sorcery/encoding.js";
 
 //
-export { createHttpError, isHttpError, Status } from "../deps.ts";
+export {
+  createHttpError,
+  isClientErrorStatus,
+  isHttpError,
+  isInformationalStatus,
+  isServerErrorStatus,
+  Status,
+  STATUS_TEXT,
+} from "../deps.ts";

@@ -17,9 +17,9 @@ export function serveStatic(
 ) {
   options.fsRoot = getPathname(fsRoot);
   options.quiet ??= true;
-  return async (ctx: Context) => {
+  return async (ctx: Context): Promise<Response> => {
     if (options.checkIfNotFound && ctx.response.status !== Status.NotFound) {
-      return;
+      return ctx.response;
     }
     return await serveDir(ctx.request, options);
   };

@@ -9,8 +9,8 @@
     "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
     "importsNotUsedAsValues": "preserve",
     "strict": true,
-    "useUnknownInCatchVariables": true,
-    "noImplicitOverride": false,
+    "useUnknownInCatchVariables": false,
+    "noImplicitOverride": false
     "checkJs": true
   }
 }

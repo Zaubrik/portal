@@ -235,7 +235,7 @@ export class Portal<S extends State = DefaultState> {
       } else {
         ctx.error = caught instanceof Error
           ? caught
-          : new Error("Not an instance of Error was thrown.");
+          : new Error("[non-error thrown]");
         ctx = await this.invokeHandlers(ctx, this.catchRoutes);
       }
     } finally {

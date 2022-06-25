@@ -1,7 +1,12 @@
 import { Context } from "../portal.ts";
 import {
   ensureFile,
-  fromFileUrl,
+  getPathname,
+  isClientErrorStatus,
+  isHttpError,
+  isInformationalStatus,
+  isNotNull,
+  isServerErrorStatus,
   isString,
   isUrl,
   log,
@@ -10,9 +15,7 @@ import {
 
 async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    const pathname = isUrl(configOrUrlToLogFile)
-      ? fromFileUrl(configOrUrlToLogFile)
-      : configOrUrlToLogFile;
+    const pathname = getPathname(configOrUrlToLogFile);
     await ensureFile(pathname);
     return {
       handlers: {
@@ -20,7 +23,7 @@ async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
           formatter: "{msg}",
         }),
 
-        file: new log.handlers.FileHandler("WARNING", {
+        file: new log.handlers.FileHandler("INFO", {
           filename: pathname,
           formatter: (logRecord) => {
             const d = logRecord.datetime.toISOString();
@@ -48,10 +51,6 @@ async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   }
 }
 
-function isBetween(x: number, min: number, max: number) {
-  return x >= min && x <= max;
-}
-
 function createMessage(ctx: Context) {
   return JSON.stringify(
     {
@@ -75,10 +74,14 @@ export async function logger(
   await log.setup(await getConfig(configOrUrlToLogFile));
   const logger = log.getLogger();
   return (ctx: Context): void => {
-    if (!ctx.response.ok && isBetween(ctx.response.status, 500, 599)) {
+    if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
       logger.critical(createMessage(ctx));
-    } else if (ctx.error) {
+    } else if (isServerErrorStatus(ctx.response.status)) {
       logger.error(createMessage(ctx));
+    } else if (isClientErrorStatus(ctx.response.status)) {
+      logger.warning(createMessage(ctx));
+    } else if (isInformationalStatus(ctx.response.status)) {
+      logger.info(createMessage(ctx));
     } else if (isDebug) {
       logger.debug(createMessage(ctx));
     }

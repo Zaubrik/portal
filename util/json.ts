@@ -15,7 +15,7 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
  * @param {string|URL} path
  * @returns {Promise<JsonValue[]>}
  */
-async function parseFakeJson(path: string | URL): Promise<JsonValue[]> {
+export async function parseFakeJson(path: string | URL): Promise<JsonValue[]> {
   const content = (await Deno.readTextFile(path)).trim();
   const contentWithoutTrailingComma = content.endsWith(",")
     ? content.slice(0, -1)
