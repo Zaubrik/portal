@@ -15,15 +15,19 @@ export {
   type SendConfig,
   SMTPClient,
 } from "https://deno.land/x/denomailer@1.2.0/mod.ts";
-export { runWithPipes } from "../util/subprocess.ts";
-export { verifyHmacSha } from "../util/crypto/hmac.js";
+export {
+  decodeUriComponentSafe,
+  getPathname,
+  runWithPipes,
+  verifyHmacSha,
+} from "../util/mod.ts";
 export { getFilename, mergeUrl, type UrlProperties } from "../sorcery/path.js";
-export { getPathname } from "../util/path.ts";
 export { equals } from "../sorcery/booleans/equality.js";
 export {
   isError,
   isNotNull,
   isObjectWide,
+  isPresent,
   isResponse,
   isString,
   isUrl,

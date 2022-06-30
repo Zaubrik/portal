@@ -16,8 +16,8 @@ type Options = { enableSubdomains?: boolean };
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
   { enableSubdomains = false }: Options = {},
-): (ctx: Context) => void {
-  return (ctx: Context) => {
+) {
+  return (ctx: Context): Response => {
     const origin = ctx.request.headers.get("origin");
     if (origin && allowedOrigins !== undefined) {
       const allowedOriginsArray = [allowedOrigins].flat();
@@ -53,5 +53,6 @@ export function enableCors(
         allowedMethods,
       );
     }
+    return ctx.response;
   };
 }

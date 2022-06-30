@@ -54,23 +54,18 @@ export function send(
   if (isDryRun) return (_ctx: Context) => new Response();
   const client = new SMTPClient(clientOptions);
   return async (ctx: Context): Promise<Response> => {
-    if (
-      "idGroup" in sendConfigOrCb &&
-      !ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup]
-    ) {
-      throw createHttpError(
-        Status.InternalServerError,
-        "Using a callback requires a group match.",
-      );
-    }
-    const body = await ctx.request.text();
     if ("idGroup" in sendConfigOrCb) {
+      const groupMatch = ctx.params.pathname.groups[sendConfigOrCb.idGroup];
+      if (!groupMatch) {
+        throw createHttpError(
+          Status.InternalServerError,
+          "Using a callback requires a group match.",
+        );
+      }
+      const body = await ctx.request.text();
       const [bodyData, err] = tryToParse(body);
       if (isObjectWide(bodyData)) {
-        const sendConfig = sendConfigOrCb.cb(
-          ctx.urlPatternResult.pathname.groups[sendConfigOrCb.idGroup],
-          bodyData,
-        );
+        const sendConfig = sendConfigOrCb.cb(groupMatch, bodyData);
         return await sendEmail(client, sendConfig);
       } else {
         throw createHttpError(
@@ -79,6 +74,7 @@ export function send(
         );
       }
     } else {
+      const body = await ctx.request.text();
       return await sendEmail(client, { ...sendConfigOrCb, content: body });
     }
   };

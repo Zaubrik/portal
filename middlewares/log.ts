@@ -73,7 +73,7 @@ export async function logger(
 ) {
   await log.setup(await getConfig(configOrUrlToLogFile));
   const logger = log.getLogger();
-  return (ctx: Context): void => {
+  return (ctx: Context): Response => {
     if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
       logger.critical(createMessage(ctx));
     } else if (isServerErrorStatus(ctx.response.status)) {
@@ -85,5 +85,6 @@ export async function logger(
     } else if (isDebug) {
       logger.debug(createMessage(ctx));
     }
+    return ctx.response;
   };
 }

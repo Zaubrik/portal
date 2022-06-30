@@ -17,7 +17,7 @@ export type AuthState = { payload: Payload };
  * is thrown. Otherwise the JWT's `payload` is assigned to the `state` property.
  */
 export function verifyJwt(key: CryptoKey | string) {
-  return async (ctx: Context<AuthState>): Promise<void> => {
+  return async (ctx: Context<AuthState>): Promise<Response> => {
     try {
       const authHeader = ctx.request.headers.get("Authorization");
       if (
@@ -31,6 +31,7 @@ export function verifyJwt(key: CryptoKey | string) {
         const payload = await verify(authHeader.slice(7), cryptoKey);
         ctx.state.payload = payload;
       }
+      return ctx.response;
     } catch {
       throw new Response(STATUS_TEXT[Status.Unauthorized], {
         status: Status.Unauthorized,

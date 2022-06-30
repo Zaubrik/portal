@@ -14,16 +14,15 @@ import {
 export type Context<S extends State = DefaultState> = {
   state: S;
   url: URL;
-  urlPatternResult: URLPatternResult;
   error: Error | null;
+  params: URLPatternResult;
   connInfo: ConnInfo;
   request: Request;
   response: Response;
 };
 /** Receives a `Context` object and returns a `Response` object or `undefined`. */
-export type Handlers<S extends State = DefaultState> = ((
-  ctx: Context<S>,
-) => Promise<Response | void | undefined> | Response | void | undefined)[];
+export type Handlers<S extends State = DefaultState> =
+  ((ctx: Context<S>) => Response | Promise<Response>)[];
 type Method =
   | "ALL"
   | "CONNECT"
@@ -44,7 +43,6 @@ type Route<S extends State = DefaultState> = {
 export type State = Record<string | number | symbol, unknown>;
 // deno-lint-ignore no-explicit-any
 type DefaultState = Record<string, any>;
-type Params = { [key: string]: string };
 
 /** The default error fallback that is called inside the `catch` statement first. */
 function errorFallback(ctx: Context) {
@@ -195,7 +193,7 @@ export class Portal<S extends State = DefaultState> {
     for (let i = 0; i < len; i++) {
       const r = routes[i];
       if (r.method === "ALL" || r.method === ctx.request.method) {
-        if (ctx.urlPatternResult = r.urlPattern.exec(ctx.url)!) {
+        if (ctx.params = r.urlPattern.exec(ctx.url)!) {
           for (const fn of r.handlers) {
             ctx.response = await fn(ctx) ?? ctx.response;
           }
@@ -255,10 +253,10 @@ export class Portal<S extends State = DefaultState> {
     return {
       state: this.state,
       url: new URL(request.url),
-      // NOTE: `urlPatternResult` will always be (correctly!) of the type
-      // `URLPatternResult` inside of the `Handlers`. See method `invokeHandlers`.
-      urlPatternResult: null as unknown as URLPatternResult,
       error: null,
+      // NOTE: `params` will always be (correctly!) of the type `URLPatternResult`
+      // inside of the `Handlers`. See method `invokeHandlers`.
+      params: null as unknown as URLPatternResult,
       connInfo,
       request,
       response: new Response(STATUS_TEXT[Status.NotFound], {
