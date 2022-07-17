@@ -89,6 +89,9 @@ export function serveStaticFile(fsRoot: string | URL, {
   urlRoot = "",
 }: ServeStaticFileOptions = {}) {
   const rootPath = getPathnameFs(fsRoot);
+  if (!rootPath.endsWith("/")) {
+    throw new Error(`The 'fsRoot' must end with '/'.`);
+  }
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
       const subdomainStr = getSubdomainPath(ctx, subdomainGroup);
