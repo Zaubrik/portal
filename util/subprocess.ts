@@ -1,6 +1,6 @@
 import { isError, isString } from "../sorcery/type.js";
 import { decode } from "../sorcery/encoding.js";
-import { ensureFile } from "./deps.ts";
+import { ensureFile } from "../deps.ts";
 
 /**
  * Run a subprocess with the `piped` option.

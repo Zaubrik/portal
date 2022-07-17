@@ -1,17 +1,13 @@
-import { Context } from "../portal.ts";
 import {
+  Context,
   createHttpError,
-  ensureFile,
   equals,
   getFilename,
-  getPathname,
-  isError,
   isObjectWide,
   isPresent,
-  runWithPipes,
   Status,
-  verifyHmacSha,
-} from "./deps.ts";
+} from "../deps.ts";
+import { getPathnameFs, runWithPipes, verifyHmacSha } from "../util/mod.ts";
 
 export type WebhookPayload = Record<string, unknown>;
 export type WebhooksState = { webhookPayload: WebhookPayload };
@@ -20,12 +16,12 @@ type PathnameParams = { action: Actions; name: string; ref: string };
 type Actions = typeof actions[keyof typeof actions];
 
 const actions = {
-  tagclone: "tagclone",
+  clone: "clone",
   pull: "pull",
 } as const;
 
 export function verifyGhWebhook(ghWebhooksSecret: string) {
-  return async (ctx: Context<WebhooksState>): Promise<Response> => {
+  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
       const xHubSignature256OrNull = ctx.request.headers.get(
         "X-Hub-Signature-256",
@@ -42,7 +38,7 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
           );
           if (isVerified && isObjectWide(payload)) {
             ctx.state.webhookPayload = payload;
-            return ctx.response;
+            return ctx;
           }
         }
       }
@@ -74,31 +70,41 @@ function createRequestInput(webhookPayload: WebhookPayload) {
   };
 }
 
-async function requestActions(input: RequestActionsInput[]) {
-  return async (ctx: Context<WebhooksState>): Promise<Response> => {
+export function requestActions(input: RequestActionsInput[]) {
+  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     const responses = await Promise.all(
       input
         .map(createRequestInput(ctx.state.webhookPayload))
         .filter(isPresent)
         .map((url: URL) => fetch(url)),
     );
-    return ctx.response;
+    return ctx;
   };
 }
 
-function getDirectoryPaths(directories: Directories) {
+function getDirectoryPaths(
+  directories: Directories,
+  ghBaseUrlWithToken: string,
+) {
   const directoryPaths = directories
-    .map(getPathname)
-    .map(removeTrailingSlash);
-  const hasMatchingSubdirs = directoryPaths.every((dir) => {
-    const subDirectory = `${dir}/${getFilename(dir)}`;
-    return Deno.statSync(subDirectory).isDirectory;
-  });
-  if (!hasMatchingSubdirs) {
-    throw new Error(
-      "The directory tree for the GitHub repositories is incorrect.",
-    );
-  }
+    .map(getPathnameFs)
+    .map(removeTrailingSlash)
+    .map((directory: string) => {
+      const subDirectory = `${directory}/${getFilename(directory)}`;
+      try {
+        const isDirectory = Deno.statSync(subDirectory);
+      } catch (_error) {
+        Deno.mkdirSync(directory, { recursive: true });
+        run({
+          action: "clone",
+          name: getFilename(directory),
+          ref: "",
+          directory,
+          ghBaseUrlWithToken,
+        });
+      }
+      return directory;
+    });
   return directoryPaths;
 }
 
@@ -116,7 +122,7 @@ function getTag(name: string) {
 }
 
 async function createTagsList(dirPath: string | URL) {
-  const directory = getPathname(dirPath);
+  const directory = getPathnameFs(dirPath);
   const names: string[] = [];
   for await (const dirEntry of Deno.readDir(directory)) {
     if (dirEntry.isDirectory && dirEntry.name.includes("@")) {
@@ -129,10 +135,10 @@ async function createTagsList(dirPath: string | URL) {
 
 function getPathnameParams(ctx: Context): PathnameParams {
   const { action, name, ref } = ctx.params.pathname.groups as any;
-  if (!action || !name || !ref) {
+  if (!action || !name) {
     throw new Error("No valid pathname params.");
   }
-  return { action, name, ref };
+  return { action, name, ref: ref ?? "" };
 }
 
 export async function run(
@@ -147,9 +153,11 @@ export async function run(
         `git -C ${directory}/${name} pull ${ghBaseUrlWithToken}/${name}`,
       );
       break;
-    case "tagclone":
+    case "clone":
       return await runWithPipes(
-        `git -C ${directory} clone ${ghBaseUrlWithToken}/${name} ${name}@${ref}`,
+        `git -C ${directory} clone ${ghBaseUrlWithToken}/${name} ${name}${
+          ref ? `@${ref}` : ""
+        }`,
       );
       break;
     default:
@@ -157,12 +165,12 @@ export async function run(
   }
 }
 
-export function pullRepository(
+export function executeAction(
   directories: Directories,
   ghBaseUrlWithToken: string,
 ) {
-  const directoryPaths = getDirectoryPaths(directories);
-  return async (ctx: Context<WebhooksState>): Promise<Response> => {
+  const directoryPaths = getDirectoryPaths(directories, ghBaseUrlWithToken);
+  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
       const { action, name, ref } = getPathnameParams(ctx);
       const directory = directoryPaths.find(repoNamesAreEqual(name));
@@ -175,7 +183,8 @@ export function pullRepository(
           ghBaseUrlWithToken,
         });
       }
-      return new Response();
+      ctx.response = new Response();
+      return ctx;
     } catch (caught) {
       throw createHttpError(Status.InternalServerError, caught.message);
     }

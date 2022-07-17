@@ -7,6 +7,11 @@ against a pattern. The pattern can contain capturing groups that extract parts
 of the matched URL. The best way to learn and test the URL Pattern API is using
 our free [URL Pattern User Interface](https://dev.zaubrik.com/urlpattern/).
 
+## Important
+
+Always check the the `groups` properties of the `URLPatternResult` for being
+_present_. The implementations vary regarding empty string or `undefined`.
+
 ## API
 
 ```bash
@@ -16,37 +21,37 @@ deno doc https://deno.land/x/portal/mod.ts
 ## Example
 
 ```ts
-import { Portal, serveStatic } from "https://deno.land/x/portal/mod.ts";
+import { Portal, serveStatic } from "https://deno.land/x/portal/mod.ts"
 
-const app = new Portal({ start: 0 });
+const app = new Portal({ start: 0 })
 
 app.use((ctx) => {
-  const start = Date.now();
-  ctx.state.start = start;
-});
+  const start = Date.now()
+  ctx.state.start = start
+})
 
 app.get(
   { pathname: "/greeting/:hello" },
   (ctx) =>
-    new Response(`Hello ${ctx.urlPatternResult.pathname.groups["hello"]}`),
-);
+    new Response(`Hello ${ctx.urlPatternResult.pathname.groups["hello"]}`)
+)
 
 app.get(
   { pathname: "/(|index.html|cat.jpeg)" },
-  serveStatic(new URL("./static", import.meta.url)),
-);
+  serveStatic(new URL("./static", import.meta.url))
+)
 
 app.use((ctx) => {
-  const ms = Date.now() - ctx.state.start;
-  ctx.response.headers.set("X-Response-Time", `${ms}ms`);
-});
+  const ms = Date.now() - ctx.state.start
+  ctx.response.headers.set("X-Response-Time", `${ms}ms`)
+})
 
 app.finally((ctx) => {
-  const rt = ctx.response.headers.get("X-Response-Time");
-  console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`);
-});
+  const rt = ctx.response.headers.get("X-Response-Time")
+  console.log(`${ctx.request.method} ${ctx.url.pathname} - ${String(rt)}`)
+})
 
-await app.listen({ port: 8080 });
+await app.listen({ port: 8080 })
 ```
 
 ## Todo

@@ -1,13 +1,11 @@
-import { Context } from "../portal.ts";
 import {
   base64,
-  createHttpError,
-  mergeUrl,
+  Context,
   Payload,
   Status,
   STATUS_TEXT,
   verify,
-} from "./deps.ts";
+} from "../deps.ts";
 
 export type AuthState = { payload: Payload };
 
@@ -17,7 +15,7 @@ export type AuthState = { payload: Payload };
  * is thrown. Otherwise the JWT's `payload` is assigned to the `state` property.
  */
 export function verifyJwt(key: CryptoKey | string) {
-  return async (ctx: Context<AuthState>): Promise<Response> => {
+  return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const authHeader = ctx.request.headers.get("Authorization");
       if (
@@ -31,7 +29,7 @@ export function verifyJwt(key: CryptoKey | string) {
         const payload = await verify(authHeader.slice(7), cryptoKey);
         ctx.state.payload = payload;
       }
-      return ctx.response;
+      return ctx;
     } catch {
       throw new Response(STATUS_TEXT[Status.Unauthorized], {
         status: Status.Unauthorized,

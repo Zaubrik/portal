@@ -1,43 +1,30 @@
-import { fromFileUrl, isString } from "./deps.ts";
-
-/**
- * decodeUriComponentSafe.
- * @param {string | URL} url
- * @returns {string}
- */
-export function decodeUriComponentSafe(uriComponent: string | URL) {
-  return decodeURIComponent(
-    (isString(uriComponent) ? uriComponent : uriComponent.href).replace(
-      /%(?![0-9A-Fa-f]{2})/g,
-      "%25",
-    ),
-  );
-}
+import { decodeUriComponentSafely, fromFileUrl, isString } from "../deps.ts";
 
 /**
  * Takes a `string` or `URL` and returns a pathname.
  * ```js
- * getPathname(new URL("file:///home/foo")); // "/home/foo"
- * getPathname(new URL("file:///home/fo%o儒")); // /home/fo%o儒
- * getPathname(new URL("http://example.com/books/123")) // /books/123
- * getPathname("file:///home/foo"); // "/home/foo"
- * getPathname("/home/foo"); // "/home/foo"
- * getPathname("./home/foo"); // "./home/foo"
+ * getPathnameFs(new URL("file:///home/foo")); // "/home/foo"
+ * getPathnameFs(new URL("file:///home/fo%o儒")); // /home/fo%o儒
+ * getPathnameFs(new URL("http://example.com/books/123")) // /books/123
+ * getPathnameFs("file:///home/foo"); // "/home/foo"
+ * getPathnameFs(new URL("file:///C:/Users/foo")) // Windows!
+ * getPathnameFs("/home/foo"); // "/home/foo"
+ * getPathnameFs("./home/foo"); // "./home/foo"
  * ```
  * @param {URL|string} url
  * @return {string}
  */
-export function getPathname(urlOrPath: URL | string): string {
+export function getPathnameFs(urlOrPath: URL | string): string {
   if (isString(urlOrPath)) {
     if (urlOrPath.startsWith("/") || urlOrPath.startsWith("./")) {
-      return decodeUriComponentSafe(urlOrPath);
+      return decodeUriComponentSafely(urlOrPath);
     } else {
-      return getPathname(new URL(urlOrPath));
+      return getPathnameFs(new URL(urlOrPath));
     }
   }
   return urlOrPath.href.startsWith("file://")
     ? fromFileUrl(urlOrPath)
-    : decodeUriComponentSafe(urlOrPath.pathname);
+    : decodeUriComponentSafely(urlOrPath.pathname);
 }
 
 /**
@@ -50,7 +37,7 @@ export function getPathname(urlOrPath: URL | string): string {
  * ```
  */
 export function importMetaResolve(moduleUrl: string) {
-  return (path: string) => getPathname(new URL(path, moduleUrl));
+  return (path: string) => getPathnameFs(new URL(path, moduleUrl));
 }
 
 /**
@@ -81,10 +68,10 @@ export function securePath(rootDirectory: URL | string) {
     if (userSuppliedFilename.indexOf("\0") !== -1) {
       throw new Error("There is a 'poison null byte' in path.");
     }
-    const path = getPathname(
+    const path = getPathnameFs(
       new URL(userSuppliedFilename, rootDirectoryObj),
     );
-    if (!path.startsWith(getPathname(rootDirectoryObj))) {
+    if (!path.startsWith(getPathnameFs(rootDirectoryObj))) {
       throw new Error("An unallowed path reversal is in path.");
     }
 

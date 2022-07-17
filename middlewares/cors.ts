@@ -1,5 +1,4 @@
-import { Context } from "../portal.ts";
-import { isString } from "./deps.ts";
+import { Context, isString } from "../deps.ts";
 
 type AllowedItems = {
   allowedOrigins?: string | string[];
@@ -17,7 +16,7 @@ export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
   { enableSubdomains = false }: Options = {},
 ) {
-  return (ctx: Context): Response => {
+  return <C extends Context>(ctx: C): C => {
     const origin = ctx.request.headers.get("origin");
     if (origin && allowedOrigins !== undefined) {
       const allowedOriginsArray = [allowedOrigins].flat();
@@ -53,6 +52,6 @@ export function enableCors(
         allowedMethods,
       );
     }
-    return ctx.response;
+    return ctx;
   };
 }

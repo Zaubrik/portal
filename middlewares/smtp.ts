@@ -1,15 +1,13 @@
-import { Context } from "../portal.ts";
 import {
   ClientOptions,
+  Context,
   createHttpError,
-  isHttpError,
   isObjectWide,
-  isResponse,
   SendConfig,
   SMTPClient,
   Status,
   tryToParse,
-} from "./deps.ts";
+} from "../deps.ts";
 
 type SendConfigOrCb = SendConfig | {
   cb: (id: string, data: Record<string, unknown>) => SendConfig;

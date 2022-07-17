@@ -1,7 +1,6 @@
-import { Context } from "../portal.ts";
 import {
+  Context,
   ensureFile,
-  getPathname,
   isClientErrorStatus,
   isHttpError,
   isInformationalStatus,
@@ -11,11 +10,12 @@ import {
   isUrl,
   log,
   LogConfig,
-} from "./deps.ts";
+} from "../deps.ts";
+import { getPathnameFs } from "../util/mod.ts";
 
 async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    const pathname = getPathname(configOrUrlToLogFile);
+    const pathname = getPathnameFs(configOrUrlToLogFile);
     await ensureFile(pathname);
     return {
       handlers: {
@@ -73,7 +73,7 @@ export async function logger(
 ) {
   await log.setup(await getConfig(configOrUrlToLogFile));
   const logger = log.getLogger();
-  return (ctx: Context): Response => {
+  return <C extends Context>(ctx: C): C => {
     if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
       logger.critical(createMessage(ctx));
     } else if (isServerErrorStatus(ctx.response.status)) {
@@ -85,6 +85,6 @@ export async function logger(
     } else if (isDebug) {
       logger.debug(createMessage(ctx));
     }
-    return ctx.response;
+    return ctx;
   };
 }

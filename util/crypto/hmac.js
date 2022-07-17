@@ -1,4 +1,4 @@
-import { decode } from "https://deno.land/std@0.143.0/encoding/hex.ts";
+import { decode } from "../../deps.ts";
 
 /** @typedef {"HS256" | "HS384" | "HS512"} Algorithm */
 

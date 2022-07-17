@@ -1,5 +1,4 @@
-import { Context } from "../portal.ts";
-import { Status } from "../deps.ts";
+import { Context, Status } from "../deps.ts";
 
 /**
  * Removes "www." and returns a `Response` with status `301`.

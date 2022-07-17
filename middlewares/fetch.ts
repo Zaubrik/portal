@@ -1,11 +1,11 @@
-import { Context } from "../portal.ts";
-import { mergeUrl, UrlProperties } from "./deps.ts";
+import { Context, mergeUrl, UrlProperties } from "../deps.ts";
 
 /** Fetches and returns a `Response` from another `URL` object or it properties.*/
-export function fetchResponse(urlOrProps: Partial<URL>) {
-  return async (ctx: Context): Promise<Response> => {
+export function fetchResponse(urlOrProps: UrlProperties) {
+  return async <C extends Context>(ctx: C): Promise<C> => {
     const url = mergeUrl(ctx.url)(urlOrProps);
     const newRequest = new Request(url.href, ctx.request);
-    return await fetch(newRequest);
+    ctx.response = await fetch(newRequest);
+    return ctx;
   };
 }

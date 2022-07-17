@@ -1,4 +1,4 @@
-import { isPresent } from "./deps.ts";
+import { isPresent } from "../deps.ts";
 
 export function assertEnv(env: string[]): string[] {
   const result = env.map((v) => Deno.env.get(v)).filter(isPresent);

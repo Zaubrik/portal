@@ -1,8 +1,7 @@
-import { Context } from "../portal.ts";
 import {
+  Context,
   createHttpError,
-  decodeUriComponentSafe,
-  getPathname,
+  decodeUriComponentSafely,
   isHttpError,
   isResponse,
   join,
@@ -11,7 +10,8 @@ import {
   ServeDirOptions,
   serveFile,
   Status,
-} from "./deps.ts";
+} from "../deps.ts";
+import { getPathnameFs } from "../util/mod.ts";
 
 type Options = ServeDirOptions & {
   checkIfNotFound?: boolean;
@@ -26,28 +26,30 @@ type Options = ServeDirOptions & {
  * ```ts
  * app.get(
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
- *   serveStatic(new URL("./static", import.meta.url))
+ *   serveStatic(new URL("./static", import.meta.url), {showDirListing: true})
  * );
  * ```
  */
 export function serveStatic(fsRoot: URL | string, options: Options = {}) {
-  const rootPathname = getPathname(fsRoot);
+  const rootPathname = getPathnameFs(fsRoot);
   options.fsRoot = rootPathname;
   options.quiet ??= true;
-  return async (ctx: Context): Promise<Response> => {
+  return async <C extends Context>(ctx: C): Promise<C> => {
     if (options.checkIfNotFound && ctx.response.status !== Status.NotFound) {
-      return ctx.response;
+      return ctx;
     }
     if (options.showDirListing) {
       const subdomainPath = getSubdomainPath(ctx, options.subdomainGroup);
       try {
         if (subdomainPath) {
-          const newPath = join(subdomainPath, getPathname(ctx.url));
+          const newPath = join(subdomainPath, getPathnameFs(ctx.url));
           const url = mergeUrl(ctx.url)({ pathname: newPath });
           const newRequest = new Request(url.href, ctx.request);
-          return await serveDir(newRequest, options);
+          ctx.response = await serveDir(newRequest, options);
+          return ctx;
         } else {
-          return await serveDir(ctx.request, options);
+          ctx.response = await serveDir(ctx.request, options);
+          return ctx;
         }
       } catch (err) {
         throw createHttpError(Status.InternalServerError, err.message);
@@ -62,6 +64,7 @@ type ServeStaticFileOptions = {
   home?: string;
   appendTrailingSlash?: boolean;
   subdomainGroup?: string;
+  urlRoot?: string;
 };
 
 /**
@@ -73,6 +76,8 @@ type ServeStaticFileOptions = {
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
  *   serveStatic(new URL("./static", import.meta.url), {
  *     subdomainGroup: "subdomain",
+ *     fsRoot: "./static",
+ *     urlRoot: "first",
  *   }),
  * );
  * ```
@@ -81,13 +86,20 @@ export function serveStaticFile(fsRoot: string | URL, {
   home = "index.html",
   subdomainGroup,
   appendTrailingSlash = true,
+  urlRoot = "",
 }: ServeStaticFileOptions = {}) {
-  return async (ctx: Context): Promise<Response> => {
+  const rootPath = getPathnameFs(fsRoot);
+  return async <C extends Context>(ctx: C): Promise<C> => {
     try {
-      const rootPath = getPathname(fsRoot);
       const subdomainStr = getSubdomainPath(ctx, subdomainGroup);
-      const pathname = getPathname(ctx.url);
-      const newPath = join(rootPath, subdomainStr, pathname);
+      const pathname = getPathnameFs(ctx.url);
+      const newPath = join(
+        rootPath,
+        subdomainStr,
+        pathname.startsWith("/" + urlRoot)
+          ? pathname.replace("/" + urlRoot, "")
+          : pathname,
+      );
       const fileInfo = await Deno.stat(newPath);
       if (
         appendTrailingSlash && fileInfo.isDirectory &&
@@ -95,12 +107,15 @@ export function serveStaticFile(fsRoot: string | URL, {
       ) {
         throw Response.redirect(ctx.request.url + "/", Status.MovedPermanently);
       }
-      return fileInfo.isDirectory
-        ? await serveFile(ctx.request, join(newPath, home))
-        : await serveFile(ctx.request, newPath, { fileInfo });
+      const filePath = fileInfo.isDirectory ? join(newPath, home) : newPath;
+      ctx.response = fileInfo.isDirectory
+        ? await serveFile(ctx.request, filePath)
+        : await serveFile(ctx.request, filePath, { fileInfo });
+      return ctx;
     } catch (errorOrResponse) {
       if (isResponse(errorOrResponse)) {
-        return errorOrResponse;
+        ctx.response = errorOrResponse;
+        return ctx;
       } else {
         throw isHttpError(errorOrResponse)
           ? errorOrResponse
@@ -113,7 +128,7 @@ export function serveStaticFile(fsRoot: string | URL, {
 function getSubdomainPath(ctx: Context, subdomainGroup?: string): string {
   try {
     if (!subdomainGroup) return "";
-    const subdomainGroupResult = decodeUriComponentSafe(
+    const subdomainGroupResult = decodeUriComponentSafely(
       ctx.params.hostname.groups[subdomainGroup].replaceAll(".", "/"),
     );
     return subdomainGroupResult.replaceAll(".", "/");
