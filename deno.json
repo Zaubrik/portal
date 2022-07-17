@@ -10,7 +10,7 @@
     "importsNotUsedAsValues": "preserve",
     "strict": true,
     "useUnknownInCatchVariables": false,
-    "noImplicitOverride": false
+    "noImplicitOverride": false,
     "checkJs": true
   }
 }

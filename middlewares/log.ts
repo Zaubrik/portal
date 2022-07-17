@@ -13,39 +13,43 @@ import {
 } from "../deps.ts";
 import { getPathnameFs } from "../util/mod.ts";
 
+async function getDefaultConfig(pathToLogFile: string | URL) {
+  const pathname = getPathnameFs(pathToLogFile);
+  await ensureFile(pathname);
+  return {
+    handlers: {
+      console: new log.handlers.ConsoleHandler("DEBUG", {
+        formatter: "{msg}",
+      }),
+
+      file: new log.handlers.FileHandler("INFO", {
+        filename: pathname,
+        formatter: (logRecord) => {
+          const d = logRecord.datetime.toISOString();
+          const dateFmt = `${d.slice(0, 10)} ${d.slice(11, 19)}`;
+          return `${
+            JSON.stringify({
+              levelName: logRecord.levelName,
+              msg: JSON.parse(logRecord.msg),
+              date: dateFmt,
+              loggerName: logRecord.loggerName,
+            })
+          },`;
+        },
+      }),
+    },
+    loggers: {
+      default: {
+        level: "DEBUG" as const,
+        handlers: ["console", "file"],
+      },
+    },
+  };
+}
+
 async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    const pathname = getPathnameFs(configOrUrlToLogFile);
-    await ensureFile(pathname);
-    return {
-      handlers: {
-        console: new log.handlers.ConsoleHandler("DEBUG", {
-          formatter: "{msg}",
-        }),
-
-        file: new log.handlers.FileHandler("INFO", {
-          filename: pathname,
-          formatter: (logRecord) => {
-            const d = logRecord.datetime.toISOString();
-            const dateFmt = `${d.slice(0, 10)} ${d.slice(11, 19)}`;
-            return `${
-              JSON.stringify({
-                levelName: logRecord.levelName,
-                msg: JSON.parse(logRecord.msg),
-                date: dateFmt,
-                loggerName: logRecord.loggerName,
-              })
-            },`;
-          },
-        }),
-      },
-      loggers: {
-        default: {
-          level: "DEBUG" as const,
-          handlers: ["console", "file"],
-        },
-      },
-    };
+    return await getDefaultConfig(configOrUrlToLogFile);
   } else {
     return configOrUrlToLogFile;
   }
