@@ -55,15 +55,15 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
 type RequestActionsInput = {
   name: string;
   action: Actions;
-  host: string;
+  domain: string;
 };
 
 function createRequestInput(webhookPayload: WebhookPayload) {
-  return ({ name, action, host }: RequestActionsInput): URL | null => {
+  return ({ name, action, domain }: RequestActionsInput): URL | null => {
     const { repository, hook, ref, ref_type } = webhookPayload;
     if (isObjectWide(repository) && !hook && ref_type === "tag" && ref) {
       if (equals(name)(repository.name)) {
-        return new URL(`${host}/github/${action}/${name}/${ref}`);
+        return new URL(`${domain}/github/${action}/${name}/${ref}`);
       }
     }
     return null;
@@ -78,6 +78,7 @@ export function requestActions(input: RequestActionsInput[]) {
         .filter(isPresent)
         .map((url: URL) => fetch(url)),
     );
+    ctx.response = new Response();
     return ctx;
   };
 }

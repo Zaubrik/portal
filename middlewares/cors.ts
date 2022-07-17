@@ -5,7 +5,7 @@ type AllowedItems = {
   allowedHeaders?: string;
   allowedMethods?: string;
 };
-type Options = { enableSubdomains?: boolean };
+type Options = { enableSubdomains?: boolean; enableCloning?: boolean };
 
 /**
  * Takes an object of `AllowedItems` and `Options` and returns a middleware
@@ -14,10 +14,13 @@ type Options = { enableSubdomains?: boolean };
  */
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
-  { enableSubdomains = false }: Options = {},
+  { enableSubdomains = false, enableCloning = false }: Options = {},
 ) {
   return <C extends Context>(ctx: C): C => {
     const origin = ctx.request.headers.get("origin");
+    if (enableCloning) {
+      ctx.response = new Response(ctx.response.body, ctx.response);
+    }
     if (origin && allowedOrigins !== undefined) {
       const allowedOriginsArray = [allowedOrigins].flat();
       if (allowedOriginsArray.includes("*")) {

@@ -132,9 +132,9 @@ function getSubdomainPath(ctx: Context, subdomainGroup?: string): string {
   try {
     if (!subdomainGroup) return "";
     const subdomainGroupResult = decodeUriComponentSafely(
-      ctx.params.hostname.groups[subdomainGroup].replaceAll(".", "/"),
-    );
-    return subdomainGroupResult.replaceAll(".", "/");
+      ctx.params.hostname.groups[subdomainGroup],
+    ).replaceAll(".", "/");
+    return subdomainGroupResult;
   } catch (err) {
     throw createHttpError(Status.InternalServerError, err.message);
   }
