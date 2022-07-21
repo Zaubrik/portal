@@ -8,7 +8,6 @@ import {
   isObject,
   isPresent,
   isString,
-  removeFirstToEnd,
   semver,
   Status,
 } from "../deps.ts";
@@ -60,15 +59,15 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
   };
 }
 
-export function requestRepoUpdate(input: { url: string }[]) {
+export function requestRepoUpdate(urls: (string | URL)[]) {
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
       const responses = await Promise.all(
-        input
+        urls
           .map(createRequestInput(ctx.state.webhookPayload))
           .flat()
           .filter(isPresent)
-          .map((url: URL) => fetch(url, { method: "POST" })),
+          .map(async (url: URL) => await fetch(url, { method: "POST" })),
       );
       ctx.response = new Response();
       return ctx;
@@ -81,14 +80,19 @@ export function requestRepoUpdate(input: { url: string }[]) {
 }
 
 function createRequestInput(webhookPayload: WebhookPayload) {
-  return ({ url }: { url: string }): [URL, URL] | null => {
+  return (url: string | URL): [URL, URL] | null => {
     // https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#ping
     if (webhookPayload.zen) return null;
     const { repository, ref, ref_type } = validatePayloadForCreateEvent(
       webhookPayload,
     );
-    const repo = repository.name;
-    return [new URL(`${url}/${repo}`), new URL(`${url}/${repo}@${ref}`)];
+    const { repo, full_name } = repository;
+    const isZaubrik = full_name === `Zaubrik/${repo}`;
+    const fullUrl = `${url}/${isZaubrik ? "github" : "land"}`;
+    return [
+      new URL(`${fullUrl}/${repo}`),
+      new URL(`${fullUrl}/${repo}@${ref}`),
+    ];
   };
 }
 
