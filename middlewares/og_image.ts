@@ -4,7 +4,7 @@ import { Context, createHttpError, createOgImage, Status } from "../deps.ts";
  * This middleware generates cached dynamic Open Graph images that you can embed
  * in your html meta tags.
  * ```ts
- * app.get({ pathname: "/{:text}.png" }, serveOgImage);
+ * get({ pathname: "/{:text}.png" }, serveOgImage);
  * ```
  */
 export async function serveOgImage<C extends Context>(ctx: C): Promise<C> {

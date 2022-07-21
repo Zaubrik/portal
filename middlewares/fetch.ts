@@ -1,6 +1,6 @@
 import { Context, mergeUrl, UrlProperties } from "../deps.ts";
 
-/** Fetches and returns a `Response` from another `URL` object or it properties.*/
+/** Fetches and returns a `Response` from another or partial `URL` object.*/
 export function fetchResponse(urlOrProps: UrlProperties) {
   return async <C extends Context>(ctx: C): Promise<C> => {
     const url = mergeUrl(ctx.url)(urlOrProps);

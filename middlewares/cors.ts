@@ -11,6 +11,9 @@ type Options = { enableSubdomains?: boolean; enableCloning?: boolean };
  * Takes an object of `AllowedItems` and `Options` and returns a middleware
  * which enables CORS by adding appropriate headers to the `Response`. If
  * `allowedOrigins` is left empty then any host is allowed.
+ * The option `enableSubdomains` extends cors to all subdomains and the option
+ * `enableCloning` is required if the response originates from another
+ * constructor.
  */
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},

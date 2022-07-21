@@ -2,7 +2,7 @@ import {
   ClientOptions,
   Context,
   createHttpError,
-  isObjectWide,
+  isObject,
   SendConfig,
   SMTPClient,
   Status,
@@ -62,7 +62,7 @@ export function send(
       }
       const body = await ctx.request.text();
       const [bodyData, err] = tryToParse(body);
-      if (isObjectWide(bodyData)) {
+      if (isObject(bodyData)) {
         const sendConfig = sendConfigOrCb.cb(groupMatch, bodyData);
         return await sendEmail(client, sendConfig);
       } else {

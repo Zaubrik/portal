@@ -2,24 +2,32 @@ import {
   Context,
   createHttpError,
   equals,
+  getDirname,
   getFilename,
-  isObjectWide,
+  isHttpError,
+  isObject,
   isPresent,
+  isString,
+  removeFirstToEnd,
+  semver,
   Status,
 } from "../deps.ts";
-import { getPathnameFs, runWithPipes, verifyHmacSha } from "../util/mod.ts";
+import {
+  getPathnameFs,
+  JsonObject,
+  runWithPipes,
+  verifyHmacSha,
+} from "../util/mod.ts";
 
-export type WebhookPayload = Record<string, unknown>;
+export type WebhookPayload = JsonObject;
+type CreateEventPayload = {
+  repository: JsonObject;
+  ref_type: "tag";
+  ref: string;
+};
 export type WebhooksState = { webhookPayload: WebhookPayload };
-type Directories = (string | URL)[];
-type PathnameParams = { action: Actions; name: string; ref: string };
-type Actions = typeof actions[keyof typeof actions];
 
-const actions = {
-  clone: "clone",
-  pull: "pull",
-} as const;
-
+// https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
 export function verifyGhWebhook(ghWebhooksSecret: string) {
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
@@ -36,8 +44,8 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
             ghWebhooksSecret,
             JSON.stringify(payload),
           );
-          if (isVerified && isObjectWide(payload)) {
-            ctx.state.webhookPayload = payload;
+          if (isVerified && isObject(payload)) {
+            ctx.state.webhookPayload = payload as JsonObject;
             return ctx;
           }
         }
@@ -52,59 +60,79 @@ export function verifyGhWebhook(ghWebhooksSecret: string) {
   };
 }
 
-type RequestActionsInput = {
-  name: string;
-  action: Actions;
-  domain: string;
-};
+export function requestRepoUpdate(input: { url: string }[]) {
+  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
+    try {
+      const responses = await Promise.all(
+        input
+          .map(createRequestInput(ctx.state.webhookPayload))
+          .flat()
+          .filter(isPresent)
+          .map((url: URL) => fetch(url, { method: "POST" })),
+      );
+      ctx.response = new Response();
+      return ctx;
+    } catch (err) {
+      throw isHttpError(err)
+        ? err
+        : createHttpError(Status.InternalServerError, err.message);
+    }
+  };
+}
 
 function createRequestInput(webhookPayload: WebhookPayload) {
-  return ({ name, action, domain }: RequestActionsInput): URL | null => {
-    const { repository, hook, ref, ref_type } = webhookPayload;
-    if (isObjectWide(repository) && !hook && ref_type === "tag" && ref) {
-      if (equals(name)(repository.name)) {
-        return new URL(`${domain}/github/${action}/${name}/${ref}`);
-      }
-    }
-    return null;
-  };
-}
-
-export function requestActions(input: RequestActionsInput[]) {
-  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
-    const responses = await Promise.all(
-      input
-        .map(createRequestInput(ctx.state.webhookPayload))
-        .filter(isPresent)
-        .map((url: URL) => fetch(url)),
+  return ({ url }: { url: string }): [URL, URL] | null => {
+    // https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#ping
+    if (webhookPayload.zen) return null;
+    const { repository, ref, ref_type } = validatePayloadForCreateEvent(
+      webhookPayload,
     );
-    ctx.response = new Response();
-    return ctx;
+    const repo = repository.name;
+    return [new URL(`${url}/${repo}`), new URL(`${url}/${repo}@${ref}`)];
   };
 }
 
-function getDirectoryPaths(
-  directories: Directories,
+function validatePayloadForCreateEvent(
+  webhookPayload: WebhookPayload,
+): CreateEventPayload {
+  const { repository, ref, ref_type } = webhookPayload;
+  if (isObject(repository) && isString(repository.name)) {
+    if (ref_type === "tag") {
+      if (isString(ref) && semver.valid(ref)) {
+        return { repository, ref, ref_type };
+      } else {
+        throw createHttpError(Status.BadRequest, "Invalid webhook tag.");
+      }
+    } else {
+      throw createHttpError(Status.BadRequest, "Invalid webhook event.");
+    }
+  } else {
+    throw createHttpError(Status.BadRequest, "Invalid repository name.");
+  }
+}
+
+/**
+ * Create directory `clones` outside and make a symbolic link into the root directory.
+ */
+export function prepareDirectory(
+  directories: (string | URL)[],
   ghBaseUrlWithToken: string,
 ) {
   const directoryPaths = directories
     .map(getPathnameFs)
     .map(removeTrailingSlash)
-    .map((directory: string) => {
-      const subDirectory = `${directory}/${getFilename(directory)}`;
+    .map((repoPath: string) => {
+      const parentDir = getDirname(repoPath);
       try {
-        const isDirectory = Deno.statSync(subDirectory);
+        const isDirectory = Deno.statSync(repoPath);
       } catch (_error) {
-        Deno.mkdirSync(directory, { recursive: true });
-        run({
-          action: "clone",
-          name: getFilename(directory),
-          ref: "",
-          directory,
-          ghBaseUrlWithToken,
-        });
+        Deno.mkdirSync(parentDir, { recursive: true });
+        const name = getFilename(repoPath);
+        runWithPipes(
+          `git -C ${parentDir} clone ${ghBaseUrlWithToken}/${name} ${name}`,
+        );
       }
-      return directory;
+      return repoPath;
     });
   return directoryPaths;
 }
@@ -117,77 +145,72 @@ function repoNamesAreEqual(name: unknown) {
   return (dir: string) => equals(name)(getFilename(dir));
 }
 
+function getPathnameParams(ctx: Context): { repo: string; directory: string } {
+  const { repo, directory } = ctx.params.pathname.groups;
+  if (!repo || !directory) {
+    throw new Error("No valid pathname params.");
+  }
+  return { repo, directory };
+}
+
+export function updateRepo(container: string, ghBaseUrlWithToken: string) {
+  return async <C extends Context>(ctx: C): Promise<C> => {
+    try {
+      const { directory, repo } = getPathnameParams(ctx);
+      try {
+        await runWithPipes(
+          `git -C ${container}/${directory}/${repo} pull ${ghBaseUrlWithToken}/${repo}`,
+        );
+      } catch {
+        await runWithPipes(
+          `git -C ${container}/${directory} clone ${ghBaseUrlWithToken}/${repo} ${repo}`,
+        );
+      }
+      ctx.response = new Response();
+      return ctx;
+    } catch (caught) {
+      throw createHttpError(Status.BadRequest, caught.message, {
+        expose: false,
+      });
+    }
+  };
+}
+
+async function createTagsList(dirPath: string | URL, repo: string) {
+  const directory = getPathnameFs(dirPath);
+  const names: string[] = [];
+  for await (const dirEntry of Deno.readDir(directory)) {
+    if (
+      dirEntry.isDirectory &&
+      (dirEntry.name === repo || dirEntry.name.startsWith(`${repo}@`))
+    ) {
+      names.push(dirEntry.name);
+    }
+  }
+  return names.sort().map((name) => ({ data: name }));
+}
+
 function getTag(name: string) {
   const lastIndex = name.lastIndexOf("@");
   return lastIndex === -1 ? name : name.slice(lastIndex + 1);
 }
 
-async function createTagsList(dirPath: string | URL) {
-  const directory = getPathnameFs(dirPath);
-  const names: string[] = [];
-  for await (const dirEntry of Deno.readDir(directory)) {
-    if (dirEntry.isDirectory && dirEntry.name.includes("@")) {
-      names.push(dirEntry.name);
-    }
-  }
-
-  return names.sort().map(getTag).join("\n");
+function createSectionData(tag: string) {
+  return { data: tag };
 }
 
-function getPathnameParams(ctx: Context): PathnameParams {
-  const { action, name, ref } = ctx.params.pathname.groups as any;
-  if (!action || !name) {
-    throw new Error("No valid pathname params.");
-  }
-  return { action, name, ref: ref ?? "" };
-}
-
-export async function run(
-  { action, name, ref, directory, ghBaseUrlWithToken }: PathnameParams & {
-    directory: Directories[number];
-    ghBaseUrlWithToken: string;
-  },
-) {
-  switch (action) {
-    case "pull":
-      return await runWithPipes(
-        `git -C ${directory}/${name} pull ${ghBaseUrlWithToken}/${name}`,
-      );
-      break;
-    case "clone":
-      return await runWithPipes(
-        `git -C ${directory} clone ${ghBaseUrlWithToken}/${name} ${name}${
-          ref ? `@${ref}` : ""
-        }`,
-      );
-      break;
-    default:
-      throw new Error("Invalid action.");
-  }
-}
-
-export function executeAction(
-  directories: Directories,
-  ghBaseUrlWithToken: string,
-) {
-  const directoryPaths = getDirectoryPaths(directories, ghBaseUrlWithToken);
-  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
-    try {
-      const { action, name, ref } = getPathnameParams(ctx);
-      const directory = directoryPaths.find(repoNamesAreEqual(name));
-      if (directory) {
-        const result = await run({
-          action,
-          name,
-          ref,
-          directory,
-          ghBaseUrlWithToken,
-        });
-      }
-      ctx.response = new Response();
-      return ctx;
-    } catch (caught) {
-      throw createHttpError(Status.InternalServerError, caught.message);
-    }
+export function serveIndex(container: string, getIndexFile: any) {
+  return async <C extends Context>(ctx: C): Promise<C> => {
+    const tagData = await createTagsList(
+      `${container}/github`,
+      ctx.params.pathname.groups.repo,
+    );
+    ctx.response = new Response(
+      await getIndexFile({ pathname: ctx.url.pathname, tagData }),
+      {
+        headers: new Headers({ "Content-Type": "text/html" }),
+      },
+    );
+    return ctx;
   };
 }

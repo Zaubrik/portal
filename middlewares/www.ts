@@ -1,14 +1,15 @@
 import { Context, Status } from "../deps.ts";
 
 /**
- * Removes "www." and returns a `Response` with status `301`.
+ * Removes the subdomain `www.` and redirects with status `301`.
  * ```ts
- * app.get({ hostname: "www.*" }, wwwRedirect);
+ * get({ hostname: "www.*" })(wwwRedirect);
  * ```
  */
-export function wwwRedirect(ctx: Context): Response {
-  return Response.redirect(
+export function wwwRedirect<C extends Context>(ctx: C): C {
+  ctx.response = Response.redirect(
     ctx.request.url.replace("www.", ""),
     Status.MovedPermanently,
   );
+  return ctx;
 }

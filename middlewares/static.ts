@@ -15,7 +15,7 @@ import { getPathnameFs } from "../util/mod.ts";
 
 type Options = ServeDirOptions & {
   checkIfNotFound?: boolean;
-  subdomainGroup?: string;
+  hasSubdomainDirectory?: boolean;
   appendTrailingSlash?: boolean;
   home?: string;
 };
@@ -39,7 +39,10 @@ export function serveStatic(fsRoot: URL | string, options: Options = {}) {
       return ctx;
     }
     if (options.showDirListing) {
-      const subdomainPath = getSubdomainPath(ctx, options.subdomainGroup);
+      const subdomainPath = getSubdomainPath(
+        ctx,
+        options.hasSubdomainDirectory,
+      );
       try {
         if (subdomainPath) {
           const newPath = join(subdomainPath, getPathnameFs(ctx.url));
@@ -63,7 +66,7 @@ export function serveStatic(fsRoot: URL | string, options: Options = {}) {
 type ServeStaticFileOptions = {
   home?: string;
   appendTrailingSlash?: boolean;
-  subdomainGroup?: string;
+  hasSubdomainDirectory?: boolean;
   urlRoot?: string;
 };
 
@@ -75,7 +78,7 @@ type ServeStaticFileOptions = {
  * app.get(
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
  *   serveStatic(new URL("./static", import.meta.url), {
- *     subdomainGroup: "subdomain",
+ *     hasSubdomainDirectory: true,
  *     fsRoot: "./static",
  *     urlRoot: "first",
  *   }),
@@ -84,7 +87,7 @@ type ServeStaticFileOptions = {
  */
 export function serveStaticFile(fsRoot: string | URL, {
   home = "index.html",
-  subdomainGroup,
+  hasSubdomainDirectory,
   appendTrailingSlash = true,
   urlRoot = "",
 }: ServeStaticFileOptions = {}) {
@@ -94,7 +97,7 @@ export function serveStaticFile(fsRoot: string | URL, {
   }
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
-      const subdomainStr = getSubdomainPath(ctx, subdomainGroup);
+      const subdomainStr = getSubdomainPath(ctx, hasSubdomainDirectory);
       const pathname = getPathnameFs(ctx.url);
       const newPath = join(
         rootPath,
@@ -128,13 +131,19 @@ export function serveStaticFile(fsRoot: string | URL, {
   };
 }
 
-function getSubdomainPath(ctx: Context, subdomainGroup?: string): string {
+function getSubdomainPath(
+  ctx: Context,
+  hasSubdomainDirectory?: boolean,
+): string {
   try {
-    if (!subdomainGroup) return "";
-    const subdomainGroupResult = decodeUriComponentSafely(
-      ctx.params.hostname.groups[subdomainGroup],
-    ).replaceAll(".", "/");
-    return subdomainGroupResult;
+    if (!hasSubdomainDirectory) return "";
+    const { subdomain } = ctx.params.hostname.groups as any;
+    if (!subdomain) {
+      throw new Error("No valid hostname params.");
+    }
+    const subdomainDirectoryResult = decodeUriComponentSafely(subdomain)
+      .replaceAll(".", "/");
+    return subdomainDirectoryResult;
   } catch (err) {
     throw createHttpError(Status.InternalServerError, err.message);
   }

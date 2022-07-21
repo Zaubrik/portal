@@ -26,6 +26,7 @@ export * as log from "https://deno.land/std@0.148.0/log/mod.ts";
 export type { LogConfig } from "https://deno.land/std@0.148.0/log/mod.ts";
 export * as base64 from "https://deno.land/std@0.148.0/encoding/base64.ts";
 export { decode } from "https://deno.land/std@0.148.0/encoding/hex.ts";
+export * as semver from "https://raw.githubusercontent.com/denoland/deno_std/main/semver/mod.ts";
 
 /**
  * mixed
@@ -43,6 +44,7 @@ export {
  */
 export {
   decodeUriComponentSafely,
+  getDirname,
   getFilename,
   mergeUrl,
   type UrlProperties,
@@ -51,10 +53,11 @@ export { equals } from "./sorcery/booleans/equality.js";
 export {
   isError,
   isNotNull,
-  isObjectWide,
+  isObject,
   isPresent,
   isResponse,
   isString,
   isUrl,
 } from "./sorcery/type.js";
 export { tryToParse } from "./sorcery/encoding.js";
+export { removeFirstToEnd } from "./sorcery/strings/update.js";
