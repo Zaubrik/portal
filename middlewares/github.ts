@@ -21,7 +21,7 @@ import {
 export type WebhookPayload = JsonObject;
 type CreateEventPayload = {
   repository: JsonObject;
-  ref_type: "tag";
+  ref_type: "tag" | "branch";
   ref: string;
 };
 export type WebhooksState = { webhookPayload: WebhookPayload };
@@ -80,18 +80,18 @@ export function requestRepoUpdate(urls: (string | URL)[]) {
 }
 
 function createRequestInput(webhookPayload: WebhookPayload) {
-  return (url: string | URL): [URL, URL] | null => {
+  return (url: string | URL): [URL, URL | null] | null => {
     // https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#ping
     if (webhookPayload.zen) return null;
     const { repository, ref, ref_type } = validatePayloadForCreateEvent(
       webhookPayload,
     );
-    const { repo, full_name } = repository;
-    const isZaubrik = full_name === `Zaubrik/${repo}`;
+    const { name, full_name } = repository;
+    const isZaubrik = full_name === `Zaubrik/${name}`;
     const fullUrl = `${url}/${isZaubrik ? "github" : "land"}`;
     return [
-      new URL(`${fullUrl}/${repo}`),
-      new URL(`${fullUrl}/${repo}@${ref}`),
+      new URL(`${fullUrl}/${name}`),
+      ref_type === "tag" ? new URL(`${fullUrl}/${name}@${ref}`) : null,
     ];
   };
 }
@@ -106,6 +106,12 @@ function validatePayloadForCreateEvent(
         return { repository, ref, ref_type };
       } else {
         throw createHttpError(Status.BadRequest, "Invalid webhook tag.");
+      }
+    } else if (ref_type === "branch") {
+      if (ref === "main") {
+        return { repository, ref, ref_type };
+      } else {
+        throw createHttpError(Status.BadRequest, "Invalid webhook branch.");
       }
     } else {
       throw createHttpError(Status.BadRequest, "Invalid webhook event.");
@@ -149,25 +155,28 @@ function repoNamesAreEqual(name: unknown) {
   return (dir: string) => equals(name)(getFilename(dir));
 }
 
-function getPathnameParams(ctx: Context): { repo: string; directory: string } {
-  const { repo, directory } = ctx.params.pathname.groups;
+function getPathnameParams(
+  ctx: Context,
+): { repo: string; directory: string; tag: string } {
+  const { repo, directory, tag } = ctx.params.pathname.groups;
   if (!repo || !directory) {
     throw new Error("No valid pathname params.");
   }
-  return { repo, directory };
+  return { repo, directory, tag: tag || "" };
 }
 
 export function updateRepo(container: string, ghBaseUrlWithToken: string) {
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
-      const { directory, repo } = getPathnameParams(ctx);
+      const { directory, repo, tag } = getPathnameParams(ctx);
+      const filename = `${repo}${tag ? `@${tag}` : ""}`;
       try {
         await runWithPipes(
-          `git -C ${container}/${directory}/${repo} pull ${ghBaseUrlWithToken}/${repo}`,
+          `git -C ${container}/${directory}/${filename} pull`,
         );
       } catch {
         await runWithPipes(
-          `git -C ${container}/${directory} clone ${ghBaseUrlWithToken}/${repo} ${repo}`,
+          `git -C ${container}/${directory} clone ${ghBaseUrlWithToken}/${repo} ${filename}`,
         );
       }
       ctx.response = new Response();
