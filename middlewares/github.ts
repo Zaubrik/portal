@@ -8,6 +8,7 @@ import {
   isObject,
   isPresent,
   isString,
+  join,
   semver,
   Status,
 } from "../deps.ts";
@@ -88,7 +89,7 @@ function createRequestInput(webhookPayload: WebhookPayload) {
     );
     const { name, full_name } = repository;
     const isZaubrik = full_name === `Zaubrik/${name}`;
-    const fullUrl = `${url}/${isZaubrik ? "github" : "land"}`;
+    const fullUrl = `${url}/${isZaubrik ? "" : "x"}`;
     return [
       new URL(`${fullUrl}/${name}`),
       ref_type === "tag" ? new URL(`${fullUrl}/${name}@${ref}`) : null,
@@ -159,10 +160,10 @@ function getPathnameParams(
   ctx: Context,
 ): { repo: string; directory: string; tag: string } {
   const { repo, directory, tag } = ctx.params.pathname.groups;
-  if (!repo || !directory) {
+  if (!repo) {
     throw new Error("No valid pathname params.");
   }
-  return { repo, directory, tag: tag || "" };
+  return { repo, directory: directory ?? "", tag: tag ?? "" };
 }
 
 export function updateRepo(container: string, ghBaseUrlWithToken: string) {
@@ -172,11 +173,13 @@ export function updateRepo(container: string, ghBaseUrlWithToken: string) {
       const filename = `${repo}${tag ? `@${tag}` : ""}`;
       try {
         await runWithPipes(
-          `git -C ${container}/${directory}/${filename} pull`,
+          `git -C ${join(container, directory, filename)} pull`,
         );
       } catch {
         await runWithPipes(
-          `git -C ${container}/${directory} clone ${ghBaseUrlWithToken}/${repo} ${filename}`,
+          `git -C ${
+            join(container, directory)
+          } clone ${ghBaseUrlWithToken}/${repo} ${filename}`,
         );
       }
       ctx.response = new Response();
@@ -215,7 +218,7 @@ function createSectionData(tag: string) {
 export function serveIndex(container: string, getIndexFile: any) {
   return async <C extends Context>(ctx: C): Promise<C> => {
     const tagData = await createTagsList(
-      `${container}/github`,
+      `${container}`,
       ctx.params.pathname.groups.repo,
     );
     ctx.response = new Response(
