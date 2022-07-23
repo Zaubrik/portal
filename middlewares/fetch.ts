@@ -1,4 +1,12 @@
-import { Context, join, mergeUrl, UrlProperties } from "../deps.ts";
+import {
+  Context,
+  createHttpError,
+  decodeUriComponentSafely,
+  join,
+  mergeUrl,
+  Status,
+  UrlProperties,
+} from "../deps.ts";
 
 type FetchResponseOptions = {
   hasSubdomainDirectory?: boolean;
@@ -7,7 +15,7 @@ type FetchResponseOptions = {
 /** Fetches and returns a `Response` from another or partial `URL` object.*/
 export function fetchResponse(
   urlOrProps: UrlProperties,
-  { hasSubdomainDirectory }: FetchResponseOptions,
+  { hasSubdomainDirectory }: FetchResponseOptions = {},
 ) {
   return async <C extends Context>(ctx: C): Promise<C> => {
     const url = mergeUrl(ctx.url)(urlOrProps);
@@ -35,4 +43,15 @@ function getSubdomainPath(
   } catch (err) {
     throw createHttpError(Status.InternalServerError, err.message);
   }
+}
+
+export function addSubdomainToPath<C extends Context>(ctx: C): C {
+  const { subdomain } = ctx.params.hostname.groups as any;
+  if (!subdomain) {
+    throw new Error("No valid hostname params.");
+  }
+  const subdomainStr = decodeUriComponentSafely(subdomain)
+    .replaceAll(".", "/");
+  ctx.url.pathname = join(`/${subdomainStr}`, ctx.url.pathname);
+  return ctx;
 }
