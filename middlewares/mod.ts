@@ -7,4 +7,5 @@ export * from "./log.ts";
 export * from "./og_image.ts";
 export * from "./smtp.ts";
 export * from "./static.ts";
-export * from "./www.ts";
+export * from "./time.ts";
+export * from "./subdomain.ts";

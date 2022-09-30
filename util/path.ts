@@ -1,6 +1,21 @@
 import { decodeUriComponentSafely, fromFileUrl, isString } from "../deps.ts";
 
 /**
+ * importMetaResolveFs.
+ * @param {string} moduleUrl
+ * @return {(path: string) => string}
+ * ```js
+ * importMetaResolveFs(import.meta.url)("./static/")
+ * ```
+ */
+export function importMetaResolveFs(moduleUrl: string) {
+  if (!moduleUrl.startsWith("file:")) {
+    throw new TypeError("Must be a file URL.");
+  }
+  return (path: string) => getPathnameFs(new URL(path, moduleUrl));
+}
+
+/**
  * Takes a `string` or `URL` and returns a pathname.
  * ```js
  * getPathnameFs(new URL("file:///home/foo")); // "/home/foo"
@@ -28,22 +43,8 @@ export function getPathnameFs(urlOrPath: URL | string): string {
 }
 
 /**
- * importMetaResolve.
- *
- * @param {string} moduleUrl
- * @return {(path: string) => string}
- * ```js
- * importMetaResolve(import.meta.url)("./static/")
- * ```
- */
-export function importMetaResolve(moduleUrl: string) {
-  return (path: string) => getPathnameFs(new URL(path, moduleUrl));
-}
-
-/**
  * securePath.
  * Adopted from https://nodejs.org/en/knowledge/file-system/security/introduction/
- *
  * ```ts
  * const secureStatic = securePath(new URL("../static/", import.meta.url));
  * const path = secureStatic("./foo.md");

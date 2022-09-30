@@ -1,4 +1,4 @@
-import { send } from "./smtp.ts";
+import { configureAndSend, send } from "./smtp.ts";
 import { assertEquals } from "../test_deps.ts";
 
 const clientOptions = {
@@ -10,31 +10,37 @@ const clientOptions = {
       password: "",
     },
   },
+  client: {
+    warning: "error" as const,
+  },
 };
 
-const sendConfig = {
-  from: "",
-  to: "",
-  subject: "",
-};
-
-const emailAddresses = {
+const emails = {
   abc: "jane.doe@example.com",
   def: "joe.smith@example.com",
 };
 
-function getSendConfig(id: string, data: Record<string, unknown>) {
-  const to = emailAddresses[id as keyof typeof emailAddresses];
+function createSendConfig(id: string, bodyMessage: string) {
+  const to = emails[id as keyof typeof emails];
   if (!to) {
     throw new Error("No email address was found.");
   }
-  return { ...sendConfig, content: JSON.stringify({ ...data, id }) };
+  return {
+    from: "karin.lenski@example.com",
+    to,
+    subject: "Hallo",
+    content: bodyMessage,
+  };
 }
 
 Deno.test("overview", function () {
   assertEquals(
-    typeof send(clientOptions, { cb: getSendConfig, idGroup: "id" }, {
-      isDryRun: true,
+    typeof send(clientOptions),
+    "function",
+  );
+  assertEquals(
+    typeof configureAndSend(clientOptions, createSendConfig, {
+      isTest: true,
     }),
     "function",
   );

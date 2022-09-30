@@ -1,19 +1,20 @@
-import { serveStatic } from "./static.ts";
+import { setXResponseTime, StartState, startTime } from "./time.ts";
 import { Context, createRoute } from "../deps.ts";
 import { assertEquals, connInfo } from "../test_deps.ts";
 
 const allAndEverythingRoute = createRoute("ALL")({ pathname: "*" });
-const ctx = new Context(
-  new Request(`https://example.com/${import.meta.url.split("/").pop()}`),
+const ctx = new Context<StartState>(
+  new Request(`https://example.com/`),
   connInfo,
 );
 
 Deno.test("overview", async function () {
   const returnedCtx = await allAndEverythingRoute(
-    serveStatic(new URL("./", import.meta.url)),
+    setXResponseTime,
+    startTime,
   )(ctx);
   assertEquals(
-    await returnedCtx.response.text(),
-    await Deno.readTextFile(new URL(import.meta.url)),
+    typeof returnedCtx.response.headers.get("X-Response-Time") === "string",
+    true,
   );
 });

@@ -1,11 +1,12 @@
-import { Portal } from "../portal.ts";
-import { verifyJwt } from "./auth.ts";
+import { AuthState, verifyBearer } from "./auth.ts";
 import {
   assertEquals,
+  assertRejects,
+  connInfo,
   create,
-  getResponseTextFromApp,
   Header,
 } from "../test_deps.ts";
+import { Context, createRoute, HttpError } from "../deps.ts";
 
 const key = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-512" },
@@ -18,35 +19,37 @@ const header: Header = {
 };
 const payload = { iss: "Joe" };
 const jwt = await create(header, payload, key);
+const getVerificationRoute = createRoute("GET")({ pathname: "/login/:jwt" });
+const getLoginRoute = createRoute("GET")({ pathname: "/login" });
 
-Deno.test("overview", async function () {
-  const app = new Portal<{ payload: typeof payload }>({ payload: { iss: "" } });
-  const getResponseText = getResponseTextFromApp(app);
-  app.get(
-    { pathname: "/login" },
-    verifyJwt(key),
-    (ctx) => new Response(ctx.state.payload.iss),
+Deno.test("verifyBearer valid jwt", async function () {
+  const ctx = new Context<AuthState>(
+    new Request("https://example.com/login", {
+      headers: { Authorization: `Bearer ${jwt}` },
+    }),
+    connInfo,
+    { payload: {} },
   );
+  const returnedCtx = await getLoginRoute(verifyBearer(key))(ctx);
   assertEquals(
-    await getResponseText(
-      new Request("https://example.com/login", {
-        headers: { Authorization: `Bearer ${jwt}` },
-      }),
-    ),
+    returnedCtx.state.payload.iss,
     "Joe",
   );
-  app.get(
-    { pathname: "/login" },
-    verifyJwt(key),
-    (ctx) => new Response(ctx.state.payload.iss),
+});
+
+Deno.test("verifyBearer valid jwt", async function () {
+  const ctx = new Context<AuthState>(
+    new Request("https://example.com/login", {
+      headers: { Authorization: `Bearer ${jwt}INVALID` },
+    }),
+    connInfo,
+    { payload: {} },
   );
-  app.finally((ctx) => new Response(`finally ${ctx.response.status}`));
-  assertEquals(
-    await getResponseText(
-      new Request("https://example.com/login", {
-        headers: { Authorization: `Bearer INVALID` },
-      }),
-    ),
-    "finally 401",
+  await assertRejects(
+    async () => {
+      await getLoginRoute(verifyBearer(key))(ctx);
+    },
+    HttpError,
+    "The serialization of the jwt is invalid.",
   );
 });

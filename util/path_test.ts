@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals, assertThrows } from "../test_deps.ts";
-import { importMetaResolve, securePath } from "./path.ts";
+import { securePath } from "./path.ts";
 
 Deno.test("securePath", function (): void {
   const rootUrl = new URL("../static/", new URL(import.meta.url));

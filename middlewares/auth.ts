@@ -1,7 +1,8 @@
 import {
-  base64,
   Context,
   createHttpError,
+  isHttpError,
+  isNull,
   Payload,
   Status,
   verify,
@@ -10,58 +11,34 @@ import {
 export type AuthState = { payload: Payload };
 
 /**
- * Takes a key or path and returns a `Handler` which verifys a JWT sent with the
+ * A curried middleware which takes a key or path and verifys a JWT sent with the
  * `Authorization` header.  If the JWT is invalid or not present an `HttpError`
  * with the status `401` is thrown. Otherwise the JWT's `payload` is assigned to
- * the `state` property.
+ * the `state`.
  */
-export function verifyJwt(keyOrPath: CryptoKey | string | URL) {
+export function verifyBearer(cryptoKey: CryptoKey) {
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const authHeader = ctx.request.headers.get("Authorization");
-      if (
-        !authHeader ||
-        !authHeader.startsWith("Bearer ") ||
-        authHeader.length <= 7
-      ) {
-        throw new Error("No or invalid 'Authorization' header.");
+      if (isNull(authHeader)) {
+        throw new Error("No 'Authorization' header.");
+      } else if (!authHeader.startsWith("Bearer ") || authHeader.length <= 7) {
+        throw new Error("Invalid 'Authorization' header.");
       } else {
-        const cryptoKey = keyOrPath instanceof CryptoKey
-          ? keyOrPath
-          : await importKey(keyOrPath);
-        const payload = await verify(authHeader.slice(7), cryptoKey);
+        const jwt = authHeader.slice(7);
+        const payload = await verify(jwt, cryptoKey);
         ctx.state.payload = payload;
       }
       return ctx;
     } catch (error) {
-      throw createHttpError(Status.Unauthorized, error.message, {
-        expose: false,
-      }); // ADD! headers: new Headers({ "WWW-Authenticate": "Bearer" })
+      throw isHttpError(error) ? error : createUnauthorizedError(error);
     }
   };
 }
 
-async function importKey(path: string | URL): Promise<CryptoKey> {
-  try {
-    const readKey = await Deno.readTextFile(path);
-    const binaryDer = base64.decode(readKey).buffer;
-
-    const key = await crypto.subtle.importKey(
-      "raw",
-      binaryDer,
-      {
-        name: "HMAC",
-        hash: "SHA-512",
-      },
-      true,
-      ["sign", "verify"],
-    );
-
-    return key;
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      throw new Error("The key file was not found.");
-    }
-    throw new Error("Failed to import the key.");
-  }
+function createUnauthorizedError(error: Error) {
+  return createHttpError(Status.Unauthorized, error.message, {
+    expose: false,
+    headers: new Headers({ "WWW-Authenticate": "Bearer" }),
+  });
 }

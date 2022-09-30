@@ -1,57 +1,36 @@
 import {
   Context,
   createHttpError,
-  decodeUriComponentSafely,
   join,
   mergeUrl,
   Status,
   UrlProperties,
 } from "../deps.ts";
+import { getSubdomainPath } from "./subdomain.ts";
 
-type FetchResponseOptions = {
+type Options = {
   hasSubdomainDirectory?: boolean;
 };
 
-/** Fetches and returns a `Response` from another or partial `URL` object.*/
+/**
+ * A curried middleware which fetches and returns a `Response` from another or
+ * partial `URL` object.
+ */
 export function fetchResponse(
-  urlOrProps: UrlProperties,
-  { hasSubdomainDirectory }: FetchResponseOptions = {},
+  urlOrProps?: UrlProperties,
+  { hasSubdomainDirectory }: Options = {},
 ) {
   return async <C extends Context>(ctx: C): Promise<C> => {
-    const url = mergeUrl(ctx.url)(urlOrProps);
-    const subdomainStr = getSubdomainPath(ctx, hasSubdomainDirectory);
-    url.pathname = join(`/${subdomainStr}`, url.pathname);
-    const newRequest = new Request(url.href, ctx.request);
-    ctx.response = await fetch(newRequest);
-    return ctx;
-  };
-}
-
-function getSubdomainPath(
-  ctx: Context,
-  hasSubdomainDirectory?: boolean,
-): string {
-  try {
-    if (!hasSubdomainDirectory) return "";
-    const { subdomain } = ctx.params.hostname.groups as any;
-    if (!subdomain) {
-      throw new Error("No valid hostname params.");
+    try {
+      const url = urlOrProps ? mergeUrl(ctx.url)(urlOrProps) : ctx.url;
+      if (hasSubdomainDirectory) {
+        url.pathname = join(`/${getSubdomainPath(ctx)}`, url.pathname);
+      }
+      const newRequest = new Request(url.href, ctx.request);
+      ctx.response = await fetch(newRequest);
+      return ctx;
+    } catch (error) {
+      throw createHttpError(Status.InternalServerError, error.message);
     }
-    const subdomainDirectoryResult = decodeUriComponentSafely(subdomain)
-      .replaceAll(".", "/");
-    return subdomainDirectoryResult;
-  } catch (err) {
-    throw createHttpError(Status.InternalServerError, err.message);
-  }
-}
-
-export function addSubdomainToPath<C extends Context>(ctx: C): C {
-  const { subdomain } = ctx.params.hostname.groups as any;
-  if (!subdomain) {
-    throw new Error("No valid hostname params.");
-  }
-  const subdomainStr = decodeUriComponentSafely(subdomain)
-    .replaceAll(".", "/");
-  ctx.url.pathname = join(`/${subdomainStr}`, ctx.url.pathname);
-  return ctx;
+  };
 }

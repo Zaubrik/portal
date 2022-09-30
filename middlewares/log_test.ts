@@ -1,7 +1,6 @@
-import { Portal } from "../portal.ts";
 import { logger } from "./log.ts";
-import { log } from "./deps.ts";
-import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
+import { Context, createRoute, log } from "../deps.ts";
+import { assertEquals, connInfo } from "../test_deps.ts";
 
 const logConfig = {
   handlers: {
@@ -17,16 +16,13 @@ const logConfig = {
   },
 };
 
-Deno.test("confirm return type void", async function () {
-  const app = new Portal();
-  const getResponseText = getResponseTextFromApp(app);
-  app.get(
-    { pathname: "/books" },
-    (_ctx) => new Response("Hello World"),
-    await logger(logConfig),
-  );
+const allAndEverythingRoute = createRoute("ALL")({ pathname: "*" });
+const ctx = new Context(new Request("https://example.com/books/123"), connInfo);
+
+Deno.test("Overview", async function () {
   assertEquals(
-    await getResponseText(new Request("https://www.example.com/books")),
-    "Hello World",
+    await allAndEverythingRoute(await logger(logConfig))(ctx) instanceof
+      Context,
+    true,
   );
 });

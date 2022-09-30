@@ -5,11 +5,13 @@ import {
   isHttpError,
   isInformationalStatus,
   isNotNull,
+  isPresent,
   isServerErrorStatus,
   isString,
   isUrl,
   log,
   LogConfig,
+  Logger,
 } from "../deps.ts";
 import { getPathnameFs } from "../util/mod.ts";
 
@@ -18,23 +20,19 @@ async function getDefaultConfig(pathToLogFile: string | URL) {
   await ensureFile(pathname);
   return {
     handlers: {
-      console: new log.handlers.ConsoleHandler("DEBUG", {
+      console: new log.handlers.ConsoleHandler("INFO", {
         formatter: "{msg}",
       }),
 
-      file: new log.handlers.FileHandler("INFO", {
+      file: new log.handlers.FileHandler("DEBUG", {
         filename: pathname,
         formatter: (logRecord) => {
-          const d = logRecord.datetime.toISOString();
-          const dateFmt = `${d.slice(0, 10)} ${d.slice(11, 19)}`;
-          return `${
-            JSON.stringify({
-              levelName: logRecord.levelName,
-              msg: JSON.parse(logRecord.msg),
-              date: dateFmt,
-              loggerName: logRecord.loggerName,
-            })
-          },`;
+          return JSON.stringify({
+            timestamp: logRecord.datetime.toISOString(),
+            ...JSON.parse(logRecord.msg),
+            logger: logRecord.loggerName,
+            level: logRecord.levelName,
+          });
         },
       }),
     },
@@ -47,6 +45,36 @@ async function getDefaultConfig(pathToLogFile: string | URL) {
   };
 }
 
+async function logMessage<C extends Context>(
+  ctx: C,
+  logger: Logger,
+  isDevelopment: boolean,
+): Promise<void> {
+  try {
+    if (isDevelopment) {
+      console.log(
+        `${ctx.request.method} ${ctx.request.url} [${ctx.response.status}]`,
+      );
+    } else {
+      const accessLogger = log.getLogger();
+      const message = await createMessage(ctx);
+      if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
+        accessLogger.critical(message);
+      } else if (isServerErrorStatus(ctx.response.status)) {
+        accessLogger.error(message);
+      } else if (isClientErrorStatus(ctx.response.status)) {
+        accessLogger.warning(message);
+      } else if (isInformationalStatus(ctx.response.status)) {
+        accessLogger.info(message);
+      } else {
+        accessLogger.debug(message);
+      }
+    }
+  } catch (error) {
+    console.error(`Unexpected logger error: ${error?.message}`);
+  }
+}
+
 async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
     return await getDefaultConfig(configOrUrlToLogFile);
@@ -55,12 +83,28 @@ async function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   }
 }
 
-function createMessage(ctx: Context) {
+async function createMessage<C extends Context>(ctx: C): Promise<string> {
   return JSON.stringify(
     {
+      request: {
+        hostname: "hostname" in ctx.connInfo.remoteAddr
+          ? ctx.connInfo.remoteAddr.hostname
+          : ctx.connInfo.remoteAddr.path,
+        method: ctx.request.method,
+        url: ctx.request.url,
+        headers: {
+          userAgent: ctx.request.headers.get("User-Agent"),
+          referer: ctx.request.headers.get("Referer"),
+        },
+      },
       status: ctx.response.status,
-      url: ctx.request.url,
-      error: ctx.error === null ? null : ctx.error.stack,
+      length: (await ctx.response.clone().arrayBuffer()).byteLength,
+      responseHeaders: {
+        xResponseTime: ctx.response.headers.get("X-Response-Time"),
+        contentType: ctx.response.headers.get("Content-Type"),
+      },
+      message: isPresent(ctx.error) ? ctx.error.message : null,
+      user: isPresent(ctx.state.payload?.sub) ? ctx.state.payload.sub : null,
     },
   );
 }
@@ -68,27 +112,17 @@ function createMessage(ctx: Context) {
 /**
  * Takes a `LogConfig` or `URL` and logs data depending on the status and error.
  * ```ts
- * app.finally(await logger(new URL("./logs/log.txt", import.meta.url)));
+ * all(await logger(new URL("./logs/log.txt", import.meta.url)));
  * ```
  */
 export async function logger(
   configOrUrlToLogFile: LogConfig | string | URL,
-  isDebug = true,
+  isDevelopment = true,
 ) {
   await log.setup(await getConfig(configOrUrlToLogFile));
   const logger = log.getLogger();
   return <C extends Context>(ctx: C): C => {
-    if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
-      logger.critical(createMessage(ctx));
-    } else if (isServerErrorStatus(ctx.response.status)) {
-      logger.error(createMessage(ctx));
-    } else if (isClientErrorStatus(ctx.response.status)) {
-      logger.warning(createMessage(ctx));
-    } else if (isInformationalStatus(ctx.response.status)) {
-      logger.info(createMessage(ctx));
-    } else if (isDebug) {
-      logger.debug(createMessage(ctx));
-    }
+    logMessage(ctx, logger, isDevelopment);
     return ctx;
   };
 }

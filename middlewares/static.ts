@@ -1,67 +1,16 @@
 import {
   Context,
   createHttpError,
-  decodeUriComponentSafely,
+  isErrorStatus,
   isHttpError,
   isResponse,
   join,
   mergeUrl,
-  serveDir,
-  ServeDirOptions,
   serveFile,
   Status,
 } from "../deps.ts";
+import { getSubdomainPath } from "./subdomain.ts";
 import { getPathnameFs } from "../util/mod.ts";
-
-type Options = ServeDirOptions & {
-  checkIfNotFound?: boolean;
-  hasSubdomainDirectory?: boolean;
-  appendTrailingSlash?: boolean;
-  home?: string;
-};
-
-/**
- * Takes a `URL` or a `string` as absolute path and serves the files under the
- * given directory root.
- * ```ts
- * app.get(
- *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
- *   serveStatic(new URL("./static", import.meta.url), {showDirListing: true})
- * );
- * ```
- */
-export function serveStatic(fsRoot: URL | string, options: Options = {}) {
-  const rootPathname = getPathnameFs(fsRoot);
-  options.fsRoot = rootPathname;
-  options.quiet ??= true;
-  return async <C extends Context>(ctx: C): Promise<C> => {
-    if (options.checkIfNotFound && ctx.response.status !== Status.NotFound) {
-      return ctx;
-    }
-    if (options.showDirListing) {
-      const subdomainPath = getSubdomainPath(
-        ctx,
-        options.hasSubdomainDirectory,
-      );
-      try {
-        if (subdomainPath) {
-          const newPath = join(subdomainPath, getPathnameFs(ctx.url));
-          const url = mergeUrl(ctx.url)({ pathname: newPath });
-          const newRequest = new Request(url.href, ctx.request);
-          ctx.response = await serveDir(newRequest, options);
-          return ctx;
-        } else {
-          ctx.response = await serveDir(ctx.request, options);
-          return ctx;
-        }
-      } catch (err) {
-        throw createHttpError(Status.InternalServerError, err.message);
-      }
-    } else {
-      return await serveStaticFile(rootPathname, options)(ctx);
-    }
-  };
-}
 
 type ServeStaticFileOptions = {
   home?: string;
@@ -85,66 +34,50 @@ type ServeStaticFileOptions = {
  * );
  * ```
  */
-export function serveStaticFile(fsRoot: string | URL, {
+export function serveStatic(fsRoot: string | URL, {
   home = "index.html",
-  hasSubdomainDirectory,
+  hasSubdomainDirectory = false,
   appendTrailingSlash = true,
   urlRoot = "",
 }: ServeStaticFileOptions = {}) {
-  const rootPath = getPathnameFs(fsRoot);
-  if (!rootPath.endsWith("/")) {
-    throw new Error(`The 'fsRoot' must end with '/'.`);
-  }
+  const pathRoot = getPathnameFs(fsRoot);
+  const urlRootToBeRemoved = join("/", urlRoot);
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
-      const subdomainStr = getSubdomainPath(ctx, hasSubdomainDirectory);
+      const subdomainStr = hasSubdomainDirectory ? getSubdomainPath(ctx) : "";
       const pathname = getPathnameFs(ctx.url);
       const newPath = join(
-        rootPath,
+        pathRoot,
         subdomainStr,
-        pathname.startsWith("/" + urlRoot)
-          ? pathname.replace("/" + urlRoot, "")
+        urlRoot.length && pathname.startsWith(urlRootToBeRemoved)
+          ? pathname.replace(urlRootToBeRemoved, "")
           : pathname,
       );
       const fileInfo = await Deno.stat(newPath);
       if (
-        appendTrailingSlash && fileInfo.isDirectory &&
-        newPath.slice(-1) !== "/"
+        appendTrailingSlash && fileInfo.isDirectory && !newPath.endsWith("/")
       ) {
-        throw Response.redirect(ctx.request.url + "/", Status.MovedPermanently);
+        ctx.response = Response.redirect(
+          ctx.request.url + "/",
+          Status.MovedPermanently,
+        );
+        return ctx;
       }
       const filePath = fileInfo.isDirectory ? join(newPath, home) : newPath;
-      ctx.response = fileInfo.isDirectory
+      const response = fileInfo.isDirectory
         ? await serveFile(ctx.request, filePath)
         : await serveFile(ctx.request, filePath, { fileInfo });
-      return ctx;
-    } catch (errorOrResponse) {
-      if (isResponse(errorOrResponse)) {
-        ctx.response = errorOrResponse;
-        return ctx;
-      } else {
-        throw isHttpError(errorOrResponse)
-          ? errorOrResponse
-          : createHttpError(Status.NotFound);
+      if (isErrorStatus(response.status)) {
+        throw createHttpError(response.status, response.statusText, {
+          expose: false,
+        });
       }
+      ctx.response = response;
+      return ctx;
+    } catch (error) {
+      throw isHttpError(error)
+        ? error
+        : createHttpError(Status.NotFound, error.message, { expose: false });
     }
   };
-}
-
-function getSubdomainPath(
-  ctx: Context,
-  hasSubdomainDirectory?: boolean,
-): string {
-  try {
-    if (!hasSubdomainDirectory) return "";
-    const { subdomain } = ctx.params.hostname.groups as any;
-    if (!subdomain) {
-      throw new Error("No valid hostname params.");
-    }
-    const subdomainDirectoryResult = decodeUriComponentSafely(subdomain)
-      .replaceAll(".", "/");
-    return subdomainDirectoryResult;
-  } catch (err) {
-    throw createHttpError(Status.InternalServerError, err.message);
-  }
 }

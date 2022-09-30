@@ -1,46 +1,77 @@
-import { Portal } from "../portal.ts";
 import { enableCors } from "./cors.ts";
-import { assertEquals, getResponseTextFromApp } from "../test_deps.ts";
+import { Context, createHandler, createRoute } from "../deps.ts";
+import { assertEquals, connInfo, identity } from "../test_deps.ts";
 
-Deno.test("overview", async function () {
-  const app = new Portal();
-  const getResponseText = getResponseTextFromApp(app);
-  app.get({ pathname: "/books" }, enableCors());
-  app.get(
-    { pathname: "/toys" },
-    enableCors({ allowedOrigins: ["https://pet.com"] }),
+const getRoute = createRoute("GET");
+
+Deno.test("Set allowed origins", async function () {
+  const booksRoute = getRoute({ pathname: "/books" })(enableCors());
+  const toysRoute = getRoute({ pathname: "/toys" })(
+    enableCors({ allowedOrigins: "https://pet.com" }),
   );
-  app.get(
-    { pathname: "/cars" },
+  const carsRoute = getRoute({ pathname: "/cars" })(
     enableCors({ allowedOrigins: ["https://another.com"] }, {
       enableSubdomains: true,
     }),
   );
-  app.finally((ctx) =>
-    new Response(ctx.response.headers.get("access-control-allow-origin"))
-  );
+  const finnalyRoute = getRoute({ pathname: "*" })((ctx) => {
+    ctx.response = new Response(
+      ctx.response.headers.get("access-control-allow-origin"),
+    );
+    return ctx;
+  });
+  const handler = createHandler(Context)(
+    booksRoute,
+    toysRoute,
+    carsRoute,
+  )(identity)(finnalyRoute);
+
   assertEquals(
-    await getResponseText(
+    await (await handler(
       new Request("https://example.com/books", {
         headers: { origin: "https://pet.com/books" },
       }),
-    ),
+      connInfo,
+    )).text(),
     "*",
   );
   assertEquals(
-    await getResponseText(
+    await (await handler(
       new Request("https://example.com/toys", {
         headers: { origin: "https://pet.com" },
       }),
-    ),
+      connInfo,
+    )).text(),
     "https://pet.com",
   );
   assertEquals(
-    await getResponseText(
+    await (await handler(
       new Request("https://example.com/cars", {
         headers: { origin: "https://blog.news.another.com" },
       }),
-    ),
+      connInfo,
+    )).text(),
     "https://blog.news.another.com",
+  );
+});
+
+const ctx = new Context(new Request("https://example.com/books/123"), connInfo);
+const getBooksRoute = getRoute({ pathname: "/books/*" });
+
+Deno.test("Set allowed headers", async function () {
+  assertEquals(
+    (await getBooksRoute(
+      enableCors({ allowedHeaders: "Content-Type, x-requested-with" }),
+    )(ctx)).response.headers.get("access-control-allow-headers"),
+    "Content-Type, x-requested-with",
+  );
+});
+
+Deno.test("Set allowed methods", async function () {
+  assertEquals(
+    (await getBooksRoute(
+      enableCors({ allowedMethods: "POST, GET, OPTIONS" }),
+    )(ctx)).response.headers.get("Access-Control-Allow-Methods"),
+    "POST, GET, OPTIONS",
   );
 });
