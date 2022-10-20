@@ -1,6 +1,6 @@
 import { getSubdomainPath, wwwRedirect } from "./subdomain.ts";
-import { Context, createRoute } from "../deps.ts";
-import { assertEquals, connInfo } from "../test_deps.ts";
+import { Context } from "../deps.ts";
+import { assertEquals, connInfo, createRoute } from "../test_deps.ts";
 
 const allAndEverythingRoute = createRoute("ALL")({
   hostname: ":subdomain(www).*",

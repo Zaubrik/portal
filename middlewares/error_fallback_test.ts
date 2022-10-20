@@ -1,13 +1,13 @@
 // deno-lint-ignore-file
 import { fallBack } from "./error_fallback.ts";
+import { Context, createHttpError, Status } from "../deps.ts";
 import {
-  Context,
+  assertEquals,
+  connInfo,
   createHandler,
-  createHttpError,
   createRoute,
-  Status,
-} from "../deps.ts";
-import { assertEquals, connInfo, identity } from "../test_deps.ts";
+  identity,
+} from "../test_deps.ts";
 
 const allAndEverythingRoute = createRoute("ALL")({ pathname: "*" });
 const ctx = new Context(

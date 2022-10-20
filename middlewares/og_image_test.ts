@@ -1,6 +1,11 @@
-import { Context, createRoute, HttpError } from "../deps.ts";
+import { Context, HttpError } from "../deps.ts";
 import { serveOgImage } from "./og_image.ts";
-import { assertEquals, assertRejects, connInfo } from "../test_deps.ts";
+import {
+  assertEquals,
+  assertRejects,
+  connInfo,
+  createRoute,
+} from "../test_deps.ts";
 
 const url =
   "https://example.com/portrait/Hello%20World.png?theme=Light&font-size=100px";

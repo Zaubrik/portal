@@ -1,6 +1,6 @@
 import { logger } from "./log.ts";
-import { Context, createRoute, log } from "../deps.ts";
-import { assertEquals, connInfo } from "../test_deps.ts";
+import { Context, log } from "../deps.ts";
+import { assertEquals, connInfo, createRoute } from "../test_deps.ts";
 
 const logConfig = {
   handlers: {

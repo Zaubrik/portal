@@ -1,6 +1,12 @@
 import { enableCors } from "./cors.ts";
-import { Context, createHandler, createRoute } from "../deps.ts";
-import { assertEquals, connInfo, identity } from "../test_deps.ts";
+import { Context } from "../deps.ts";
+import {
+  assertEquals,
+  connInfo,
+  createHandler,
+  createRoute,
+  identity,
+} from "../test_deps.ts";
 
 const getRoute = createRoute("GET");
 

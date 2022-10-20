@@ -1,14 +1,7 @@
 /**
  * composium
  */
-export {
-  compose,
-  composeSync,
-  Context,
-  createHandler,
-  createRoute,
-  listen,
-} from "./composium/mod.ts";
+export { Context } from "./composium/mod.ts";
 
 /**
  * std

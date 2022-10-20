@@ -6,6 +6,14 @@ export {
 } from "https://deno.land/std@0.150.0/testing/asserts.ts";
 export { delay } from "https://deno.land/std@0.150.0/async/delay.ts";
 export {
+  compose,
+  composeSync,
+  Context,
+  createHandler,
+  createRoute,
+  listen,
+} from "../composium/mod.ts";
+export {
   create,
   getNumericDate,
   type Header,

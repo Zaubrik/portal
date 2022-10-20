@@ -1,6 +1,6 @@
 import { fetchResponse } from "./fetch.ts";
-import { Context, createRoute } from "../deps.ts";
-import { assertEquals, connInfo } from "../test_deps.ts";
+import { Context } from "../deps.ts";
+import { assertEquals, connInfo, createRoute } from "../test_deps.ts";
 
 const allAndEverythingRoute = createRoute("ALL")({ pathname: "*" });
 const ctx = new Context(new Request(`https://example.com/`), connInfo);
