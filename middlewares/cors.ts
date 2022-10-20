@@ -5,25 +5,20 @@ type AllowedItems = {
   allowedHeaders?: string;
   allowedMethods?: string;
 };
-type Options = { enableSubdomains?: boolean; enableCloning?: boolean };
+type Options = { enableSubdomains?: boolean };
 
 /**
  * Takes an object of `AllowedItems` and `Options` and returns a middleware
  * which enables CORS by adding appropriate headers to the `Response`. If
  * `allowedOrigins` is left empty then any origin is allowed.
- * The option `enableSubdomains` extends cors to all subdomains and the option
- * `enableCloning` is required if the response originates from another
- * constructor.
+ * The option `enableSubdomains` extends cors to all subdomains.
  */
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
-  { enableSubdomains = false, enableCloning = false }: Options = {},
+  { enableSubdomains = false }: Options = {},
 ) {
   return <C extends Context>(ctx: C): C => {
     const origin = ctx.request.headers.get("origin");
-    if (enableCloning) {
-      ctx.response = new Response(ctx.response.body, ctx.response);
-    }
     if (origin && allowedOrigins !== undefined) {
       const allowedOriginsArray = [allowedOrigins].flat();
       if (allowedOriginsArray.includes("*")) {

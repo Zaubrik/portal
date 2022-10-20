@@ -2,7 +2,7 @@ export * from "./auth.ts";
 export * from "./cors.ts";
 export * from "./error_fallback.ts";
 export * from "./fetch.ts";
-export * from "./github.ts";
+export * from "./webhook.ts";
 export * from "./log.ts";
 export * from "./og_image.ts";
 export * from "./smtp.ts";

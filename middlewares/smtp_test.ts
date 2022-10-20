@@ -35,10 +35,6 @@ function createSendConfig(id: string, bodyMessage: string) {
 
 Deno.test("overview", function () {
   assertEquals(
-    typeof send(clientOptions),
-    "function",
-  );
-  assertEquals(
     typeof configureAndSend(clientOptions, createSendConfig, {
       isTest: true,
     }),

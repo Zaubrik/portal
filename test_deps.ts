@@ -13,6 +13,7 @@ export {
   verify,
 } from "https://deno.land/x/djwt@v2.7/mod.ts";
 export { identity } from "./sorcery/higher_order.js";
+export { isNull, isPresent, isString } from "./sorcery/type.js";
 
 export const connInfo = {
   localAddr: { transport: "tcp" as const, hostname: "127.0.0.1", port: 8080 },

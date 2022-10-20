@@ -1,14 +1,13 @@
 import { decode } from "../../deps.ts";
-
-/** @typedef {"HS256" | "HS384" | "HS512"} Algorithm */
+import { HsAlgorithm } from "./crypto_key.ts";
 
 const encoder = new TextEncoder();
 
 /**
  * Get the correct algorithm.
- * @param {Algorithm} alg
+ * @param {HsAlgorithm} alg
  */
-function getAlgorithm(alg) {
+function getAlgorithm(alg: HsAlgorithm) {
   switch (alg) {
     case "HS256":
       return { hash: { name: "SHA-256" }, name: "HMAC" };
@@ -23,11 +22,16 @@ function getAlgorithm(alg) {
 
 /**
  * Create HMAC SHA signature.
- * @param {Algorithm} alg
+ * @param {HsAlgorithm} alg
  * @param {string} key
  * @param {string} signingInput
+ * @return {Promise<Uint8Array>}
  */
-export async function createHmacSha(alg, key, signingInput) {
+export async function createHmacSha(
+  alg: HsAlgorithm,
+  key: string,
+  signingInput: string,
+): Promise<Uint8Array> {
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(key),
@@ -47,11 +51,17 @@ export async function createHmacSha(alg, key, signingInput) {
 /**
  * Verify HMAC SHA signature.
  * @param {Uint8Array|string} signature
- * @param {Algorithm} alg
+ * @param {HsAlgorithm} alg
  * @param {string} key
  * @param {string} signingInput
+ * @return {Promise<Boolean>}
  */
-export async function verifyHmacSha(signature, alg, key, signingInput) {
+export async function verifyHmacSha(
+  signature: Uint8Array | string,
+  alg: HsAlgorithm,
+  key: string,
+  signingInput: string,
+): Promise<boolean> {
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(key),

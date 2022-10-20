@@ -12,10 +12,11 @@ import {
  * ```
  */
 export function wwwRedirect<C extends Context>(ctx: C): C {
-  ctx.response = Response.redirect(
-    ctx.request.url.replace("www.", ""),
-    Status.MovedPermanently,
-  );
+  ctx.response = new Response(null, {
+    status: Status.MovedPermanently,
+    headers: { "location": ctx.request.url.replace("www.", "") },
+  });
+
   return ctx;
 }
 

@@ -20,7 +20,7 @@ async function getDefaultConfig(pathToLogFile: string | URL) {
   await ensureFile(pathname);
   return {
     handlers: {
-      console: new log.handlers.ConsoleHandler("INFO", {
+      console: new log.handlers.ConsoleHandler("DEBUG", {
         formatter: "{msg}",
       }),
 
@@ -58,17 +58,7 @@ async function logMessage<C extends Context>(
     } else {
       const accessLogger = log.getLogger();
       const message = await createMessage(ctx);
-      if (isNotNull(ctx.error) && !isHttpError(ctx.error)) {
-        accessLogger.critical(message);
-      } else if (isServerErrorStatus(ctx.response.status)) {
-        accessLogger.error(message);
-      } else if (isClientErrorStatus(ctx.response.status)) {
-        accessLogger.warning(message);
-      } else if (isInformationalStatus(ctx.response.status)) {
-        accessLogger.info(message);
-      } else {
-        accessLogger.debug(message);
-      }
+      accessLogger.debug(message);
     }
   } catch (error) {
     console.error(`Unexpected logger error: ${error?.message}`);

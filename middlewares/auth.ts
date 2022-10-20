@@ -1,7 +1,6 @@
 import {
   Context,
   createHttpError,
-  isHttpError,
   isNull,
   Payload,
   Status,
@@ -9,6 +8,7 @@ import {
 } from "../deps.ts";
 
 export type AuthState = { payload: Payload };
+type PayloadPredicate = (payload: Payload) => boolean;
 
 /**
  * A curried middleware which takes a key or path and verifys a JWT sent with the
@@ -16,7 +16,11 @@ export type AuthState = { payload: Payload };
  * with the status `401` is thrown. Otherwise the JWT's `payload` is assigned to
  * the `state`.
  */
-export function verifyBearer(cryptoKey: CryptoKey) {
+export function verifyBearer(
+  cryptoKey: CryptoKey,
+  ...payloadPredicates: PayloadPredicate[] | [PayloadPredicate[]]
+) {
+  const predicates = payloadPredicates.flat();
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const authHeader = ctx.request.headers.get("Authorization");
@@ -27,11 +31,15 @@ export function verifyBearer(cryptoKey: CryptoKey) {
       } else {
         const jwt = authHeader.slice(7);
         const payload = await verify(jwt, cryptoKey);
-        ctx.state.payload = payload;
+        if (predicates.every((predicate) => predicate(payload))) {
+          ctx.state.payload = payload;
+        } else {
+          throw new Error("The payload does not satisfy all predicates.");
+        }
       }
       return ctx;
     } catch (error) {
-      throw isHttpError(error) ? error : createUnauthorizedError(error);
+      throw createUnauthorizedError(error);
     }
   };
 }

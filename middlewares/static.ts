@@ -17,6 +17,7 @@ type ServeStaticFileOptions = {
   appendTrailingSlash?: boolean;
   hasSubdomainDirectory?: boolean;
   urlRoot?: string;
+  enableCors?: boolean;
 };
 
 /**
@@ -39,6 +40,7 @@ export function serveStatic(fsRoot: string | URL, {
   hasSubdomainDirectory = false,
   appendTrailingSlash = true,
   urlRoot = "",
+  enableCors = false,
 }: ServeStaticFileOptions = {}) {
   const pathRoot = getPathnameFs(fsRoot);
   const urlRootToBeRemoved = join("/", urlRoot);
@@ -57,10 +59,10 @@ export function serveStatic(fsRoot: string | URL, {
       if (
         appendTrailingSlash && fileInfo.isDirectory && !newPath.endsWith("/")
       ) {
-        ctx.response = Response.redirect(
-          ctx.request.url + "/",
-          Status.MovedPermanently,
-        );
+        ctx.response = new Response(null, {
+          status: Status.MovedPermanently,
+          headers: { "location": ctx.request.url + "/" },
+        });
         return ctx;
       }
       const filePath = fileInfo.isDirectory ? join(newPath, home) : newPath;
@@ -68,16 +70,25 @@ export function serveStatic(fsRoot: string | URL, {
         ? await serveFile(ctx.request, filePath)
         : await serveFile(ctx.request, filePath, { fileInfo });
       if (isErrorStatus(response.status)) {
-        throw createHttpError(response.status, response.statusText, {
-          expose: false,
-        });
+        throw createHttpError(response.status, response.statusText);
       }
       ctx.response = response;
+      if (enableCors) {
+        ctx.response.headers.set("access-control-allow-origin", "*");
+      }
       return ctx;
     } catch (error) {
       throw isHttpError(error)
-        ? error
-        : createHttpError(Status.NotFound, error.message, { expose: false });
+        ? enableCors
+          ? createHttpError(error.status, error.message, {
+            headers: new Headers({ "access-control-allow-origin": "*" }),
+          })
+          : error
+        : enableCors
+        ? createHttpError(Status.NotFound, error.message, {
+          headers: new Headers({ "access-control-allow-origin": "*" }),
+        })
+        : createHttpError(Status.NotFound, error.message);
     }
   };
 }

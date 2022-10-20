@@ -23,8 +23,8 @@ export type {
   LogConfig,
   Logger,
 } from "https://deno.land/std@0.158.0/log/mod.ts";
-export { decode } from "https://deno.land/std@0.158.0/encoding/hex.ts";
-export * as semver from "https://deno.land/std@0.158.0/semver/mod.ts";
+export { decode, encode } from "https://deno.land/std@0.158.0/encoding/hex.ts";
+export * as base64 from "https://deno.land/std@0.158.0/encoding/base64.ts";
 
 /**
  * mixed
@@ -40,7 +40,7 @@ export {
   type ClientOptions,
   type SendConfig,
   SMTPClient,
-} from "https://deno.land/x/denomailer@1.2.0/mod.ts";
+} from "https://deno.land/x/denomailer@1.3.0/mod.ts";
 
 /**
  * sorcery
