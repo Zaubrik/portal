@@ -1,9 +1,10 @@
-import { Context, HttpError } from "../deps.ts";
+import { HttpError } from "../deps.ts";
 import { serveOgImage } from "./og_image.ts";
 import {
   assertEquals,
   assertRejects,
   connInfo,
+  Context,
   createRoute,
 } from "../test_deps.ts";
 

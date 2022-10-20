@@ -3,6 +3,7 @@ import {
   assertEquals,
   assertRejects,
   connInfo,
+  Context,
   create,
   createRoute,
   Header,
@@ -10,7 +11,7 @@ import {
   isPresent,
   isString,
 } from "../test_deps.ts";
-import { Context, HttpError } from "../deps.ts";
+import { HttpError } from "../deps.ts";
 
 const key = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-512" },

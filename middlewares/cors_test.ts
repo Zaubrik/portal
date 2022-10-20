@@ -1,8 +1,8 @@
 import { enableCors } from "./cors.ts";
-import { Context } from "../deps.ts";
 import {
   assertEquals,
   connInfo,
+  Context,
   createHandler,
   createRoute,
   identity,

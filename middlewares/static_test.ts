@@ -1,6 +1,5 @@
 import { serveStatic } from "./static.ts";
-import { Context } from "../deps.ts";
-import { assertEquals, connInfo, createRoute } from "../test_deps.ts";
+import { assertEquals, connInfo, Context, createRoute } from "../test_deps.ts";
 
 const allAndEverythingRoute = createRoute("ALL")({ pathname: "*" });
 const ctx = new Context(

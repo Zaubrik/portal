@@ -1,9 +1,10 @@
 // deno-lint-ignore-file
 import { fallBack } from "./error_fallback.ts";
-import { Context, createHttpError, Status } from "../deps.ts";
+import { createHttpError, Status } from "../deps.ts";
 import {
   assertEquals,
   connInfo,
+  Context,
   createHandler,
   createRoute,
   identity,

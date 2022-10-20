@@ -1,7 +1,7 @@
 /**
  * composium
  */
-export { Context } from "./composium/mod.ts";
+export { type Context } from "./composium/mod.ts";
 
 /**
  * std
