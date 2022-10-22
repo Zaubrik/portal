@@ -1,7 +1,7 @@
 /**
  * composium
  */
-export { type Context } from "./composium/mod.ts";
+export { type Context } from "https://dev.zaubrik.com/composium@v0.0.7/mod.ts";
 
 /**
  * std
@@ -44,8 +44,8 @@ export {
   getFilename,
   mergeUrl,
   type UrlProperties,
-} from "./sorcery/path.js";
-export { equals } from "./sorcery/booleans/equality.js";
+} from "https://dev.zaubrik.com/sorcery@v0.0.6/path.js";
+export { equals } from "https://dev.zaubrik.com/sorcery@v0.0.6/booleans/equality.js";
 export {
   isError,
   isNotNull,
@@ -55,6 +55,9 @@ export {
   isResponse,
   isString,
   isUrl,
-} from "./sorcery/type.js";
-export { tryToParse } from "./sorcery/encoding.js";
-export { removeFirstToEnd } from "./sorcery/strings/update.js";
+} from "https://dev.zaubrik.com/sorcery@v0.0.6/type.js";
+export {
+  decode as decodeUint8Array,
+  tryToParse,
+} from "https://dev.zaubrik.com/sorcery@v0.0.6/encoding.js";
+export { removeFirstToEnd } from "https://dev.zaubrik.com/sorcery@v0.0.6/strings/update.js";

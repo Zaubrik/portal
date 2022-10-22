@@ -1,6 +1,4 @@
-import { isError, isString } from "../sorcery/type.js";
-import { decode } from "../sorcery/encoding.js";
-import { ensureFile } from "../deps.ts";
+import { decodeUint8Array, ensureFile, isError, isString } from "../deps.ts";
 
 /**
  * Run a subprocess with the `piped` option.
@@ -26,9 +24,9 @@ export async function runWithPipes(
     const rawOutput = await p.output();
     const rawError = await p.stderrOutput();
     if (status.code === 0) {
-      return decode(rawOutput);
+      return decodeUint8Array(rawOutput);
     } else {
-      const err = decode(rawError);
+      const err = decodeUint8Array(rawError);
       if (debug) {
         await ensureFile(debug);
         await Deno.writeTextFile(debug, `${JSON.stringify([err])},`, {
