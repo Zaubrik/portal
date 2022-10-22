@@ -6,18 +6,18 @@ export { type Context } from "./composium/mod.ts";
 /**
  * std
  */
-export { fromFileUrl, join } from "https://deno.land/std@0.158.0/path/mod.ts";
-export { ensureFile } from "https://deno.land/std@0.158.0/fs/mod.ts";
-export * from "https://deno.land/std@0.158.0/http/http_errors.ts";
-export * from "https://deno.land/std@0.158.0/http/http_status.ts";
-export { serveFile } from "https://deno.land/std@0.158.0/http/file_server.ts";
-export * as log from "https://deno.land/std@0.158.0/log/mod.ts";
+export { fromFileUrl, join } from "https://deno.land/std@0.160.0/path/mod.ts";
+export { ensureFile } from "https://deno.land/std@0.160.0/fs/mod.ts";
+export * from "https://deno.land/std@0.160.0/http/http_errors.ts";
+export * from "https://deno.land/std@0.160.0/http/http_status.ts";
+export { serveFile } from "https://deno.land/std@0.160.0/http/file_server.ts";
+export * as log from "https://deno.land/std@0.160.0/log/mod.ts";
 export type {
   LogConfig,
   Logger,
-} from "https://deno.land/std@0.158.0/log/mod.ts";
-export { decode, encode } from "https://deno.land/std@0.158.0/encoding/hex.ts";
-export * as base64 from "https://deno.land/std@0.158.0/encoding/base64.ts";
+} from "https://deno.land/std@0.160.0/log/mod.ts";
+export { decode, encode } from "https://deno.land/std@0.160.0/encoding/hex.ts";
+export * as base64 from "https://deno.land/std@0.160.0/encoding/base64.ts";
 
 /**
  * mixed
