@@ -38,7 +38,7 @@ type ServeStaticFileOptions = {
 export function serveStatic(fsRoot: string | URL, {
   home = "index.html",
   hasSubdomainDirectory = false,
-  appendTrailingSlash = false,
+  appendTrailingSlash = true,
   urlRoot = "",
   enableCors = false,
 }: ServeStaticFileOptions = {}) {
@@ -61,7 +61,7 @@ export function serveStatic(fsRoot: string | URL, {
       ) {
         ctx.response = new Response(null, {
           status: Status.MovedPermanently,
-          headers: { "location": ctx.request.url + "/" },
+          headers: { "location": ctx.url.pathname + "/" },
         });
         return ctx;
       }
