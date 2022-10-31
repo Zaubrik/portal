@@ -38,7 +38,7 @@ export function verifyWebhook(
         }
       }
       throw new Error();
-    } catch (error) {
+    } catch {
       throw createHttpError(
         Status.BadRequest,
         "The webhook request could not be verified.",

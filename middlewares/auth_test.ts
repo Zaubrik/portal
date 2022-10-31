@@ -24,7 +24,6 @@ const header: Header = {
 };
 const payload = { iss: "Joe" };
 const jwt = await create(header, payload, key);
-const getVerificationRoute = createRoute("GET")({ pathname: "/login/:jwt" });
 const getLoginRoute = createRoute("GET")({ pathname: "/login" });
 
 Deno.test("verifyBearer valid jwt", async function () {

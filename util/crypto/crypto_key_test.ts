@@ -2,7 +2,6 @@ import {
   assertEquals,
   assertNotEquals,
   assertRejects,
-  assertThrows,
 } from "../../test_deps.ts";
 import {
   generateCryptoKey,

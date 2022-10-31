@@ -22,7 +22,7 @@ export * as base64 from "https://deno.land/std@0.160.0/encoding/base64.ts";
 /**
  * mixed
  */
-export { createOgImage } from "https://deno.land/x/portrait@v0.0.8/mod.ts";
+export { createOgImage } from "https://deno.land/x/portrait@v0.0.9/mod.ts";
 export {
   create,
   type Header,
@@ -33,7 +33,7 @@ export {
   type ClientOptions,
   type SendConfig,
   SMTPClient,
-} from "https://deno.land/x/denomailer@1.3.0/mod.ts";
+} from "https://deno.land/x/denomailer@1.5.0/mod.ts";
 
 /**
  * sorcery
@@ -44,8 +44,8 @@ export {
   getFilename,
   mergeUrl,
   type UrlProperties,
-} from "https://dev.zaubrik.com/sorcery@v0.0.6/path.js";
-export { equals } from "https://dev.zaubrik.com/sorcery@v0.0.6/booleans/equality.js";
+} from "https://dev.zaubrik.com/sorcery@v0.0.7/path.js";
+export { equals } from "https://dev.zaubrik.com/sorcery@v0.0.7/booleans/equality.js";
 export {
   isError,
   isNotNull,
@@ -55,9 +55,9 @@ export {
   isResponse,
   isString,
   isUrl,
-} from "https://dev.zaubrik.com/sorcery@v0.0.6/type.js";
+} from "https://dev.zaubrik.com/sorcery@v0.0.7/type.js";
 export {
   decode as decodeUint8Array,
   tryToParse,
-} from "https://dev.zaubrik.com/sorcery@v0.0.6/encoding.js";
-export { removeFirstToEnd } from "https://dev.zaubrik.com/sorcery@v0.0.6/strings/update.js";
+} from "https://dev.zaubrik.com/sorcery@v0.0.7/encoding.js";
+export { removeFirstToEnd } from "https://dev.zaubrik.com/sorcery@v0.0.7/strings/update.js";

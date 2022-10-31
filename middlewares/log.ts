@@ -1,12 +1,7 @@
 import {
   Context,
   ensureFile,
-  isClientErrorStatus,
-  isHttpError,
-  isInformationalStatus,
-  isNotNull,
   isPresent,
-  isServerErrorStatus,
   isString,
   isUrl,
   log,
@@ -56,9 +51,8 @@ async function logMessage<C extends Context>(
         `${ctx.request.method} ${ctx.request.url} [${ctx.response.status}]`,
       );
     } else {
-      const accessLogger = log.getLogger();
       const message = await createMessage(ctx);
-      accessLogger.debug(message);
+      logger.debug(message);
     }
   } catch (error) {
     console.error(`Unexpected logger error: ${error?.message}`);

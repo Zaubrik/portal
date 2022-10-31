@@ -1,9 +1,5 @@
-import {
-  assertEquals,
-  assertNotEquals,
-  assertThrows,
-} from "../../test_deps.ts";
-import { decode, encode } from "../../deps.ts";
+import { assertEquals, assertNotEquals } from "../../test_deps.ts";
+import { encode } from "../../deps.ts";
 import { createHmacSha, verifyHmacSha } from "./hmac.ts";
 
 const signingInput = "someinput";

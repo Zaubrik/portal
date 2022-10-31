@@ -3,7 +3,6 @@ import {
   Context,
   createHttpError,
   isHttpError,
-  isObject,
   isPresent,
   isString,
   SendConfig,
@@ -49,26 +48,42 @@ type Options = { isTest?: boolean };
  *   };
  * }
  *
- * post({pathname: "/email/:id/send"})(configureAndSend(clientOptions, createSendConfig)
+ * post({pathname: "/email/:id/send"})(send(clientOptions, createSendConfig)
  * ```
  */
-export function configureAndSend(
+export function send(
   clientOptions: ClientOptions,
-  createSendConfig: (
+  createSendConfig?: (
     id: string,
     bodyMessage: string,
   ) => SendConfig | Promise<SendConfig>,
   { isTest = false }: Options = {},
 ) {
-  if (isTest) return (_ctx: Context) => new Response();
-  const client = new SMTPClient(clientOptions);
+  if (isTest) {
+    return <C extends Context>(ctx: C): C => {
+      ctx.response = new Response();
+      return ctx;
+    };
+  }
   return async <C extends Context>(ctx: C): Promise<C> => {
+    const client = new SMTPClient(clientOptions);
     try {
       const { id } = getPathnameParams(ctx);
       const bodyMessage = await ctx.request.text();
-      await sendEmail(client, await createSendConfig(id, bodyMessage));
-      return ctx;
+      const sendConfig = createSendConfig
+        ? await createSendConfig(id, bodyMessage)
+        : JSON.parse(bodyMessage);
+      if (isSendConfig(sendConfig)) {
+        ctx.response = await sendEmail(client, sendConfig);
+        return ctx;
+      } else {
+        throw createHttpError(
+          Status.BadRequest,
+          "The 'SendConfig' is invalid.",
+        );
+      }
     } catch (error) {
+      await client.close();
       throw isHttpError(error)
         ? error
         : createHttpError(Status.BadRequest, error.message);
@@ -91,35 +106,14 @@ export async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
   try {
     await client.send(sendConfig);
     await client.close();
-    return new Response();
+    return new Response(null);
   } catch (err) {
     throw createHttpError(Status.InternalServerError, err.message);
   }
 }
 
-export function send(clientOptions: ClientOptions) {
-  const client = new SMTPClient(clientOptions);
-  return async <C extends Context>(ctx: C): Promise<C> => {
-    try {
-      const sendConfig = await ctx.request.json();
-      if (isSendConfig(sendConfig)) {
-        await sendEmail(client, sendConfig);
-        return ctx;
-      } else {
-        throw createHttpError(
-          Status.BadRequest,
-          "The 'SendConfig' is invalid.",
-        );
-      }
-    } catch (error) {
-      throw isHttpError(error)
-        ? error
-        : createHttpError(Status.BadRequest, error.message);
-    }
-  };
-}
-
 // https://github.com/EC-Nordbund/denomailer/blob/main/config/mail/mod.ts
+// deno-lint-ignore no-explicit-any
 function isSendConfig(input: any): input is SendConfig {
   return isPresent(input?.to) && isString(input?.from) &&
     isString(input?.subject);

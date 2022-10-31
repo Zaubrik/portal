@@ -3,9 +3,7 @@ import {
   createHttpError,
   isErrorStatus,
   isHttpError,
-  isResponse,
   join,
-  mergeUrl,
   serveFile,
   Status,
 } from "../deps.ts";
@@ -61,6 +59,7 @@ export function serveStatic(fsRoot: string | URL, {
       ) {
         ctx.response = new Response(null, {
           status: Status.MovedPermanently,
+          // Relative path: https://stackoverflow.com/questions/8250259/is-a-302-redirect-to-relative-url-valid-or-invalid
           headers: { "location": ctx.url.pathname + "/" },
         });
         return ctx;
