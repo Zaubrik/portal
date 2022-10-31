@@ -69,7 +69,9 @@ export function serveStatic(fsRoot: string | URL, {
         ? await serveFile(ctx.request, filePath)
         : await serveFile(ctx.request, filePath, { fileInfo });
       if (isErrorStatus(response.status)) {
-        throw createHttpError(response.status, response.statusText);
+        throw createHttpError(response.status, response.statusText, {
+          expose: false,
+        });
       }
       ctx.response = response;
       if (enableCors) {
@@ -80,14 +82,16 @@ export function serveStatic(fsRoot: string | URL, {
       throw isHttpError(error)
         ? enableCors
           ? createHttpError(error.status, error.message, {
+            expose: false,
             headers: new Headers({ "access-control-allow-origin": "*" }),
           })
           : error
         : enableCors
         ? createHttpError(Status.NotFound, error.message, {
+          expose: false,
           headers: new Headers({ "access-control-allow-origin": "*" }),
         })
-        : createHttpError(Status.NotFound, error.message);
+        : createHttpError(Status.NotFound, error.message, { expose: false });
     }
   };
 }
