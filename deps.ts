@@ -61,3 +61,10 @@ export {
   tryToParse,
 } from "https://dev.zaubrik.com/sorcery@v0.0.7/encoding.js";
 export { removeFirstToEnd } from "https://dev.zaubrik.com/sorcery@v0.0.7/strings/update.js";
+
+// FIX
+export type VerifyOptions = {
+  expLeeway?: number;
+  nbfLeeway?: number;
+  aud?: string | string[];
+};
