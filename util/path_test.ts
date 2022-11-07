@@ -15,15 +15,15 @@ Deno.test("securePath", function (): void {
   );
   assertEquals(
     secureStatic("./foo.md"),
-    fromFileUrl(new URL("../static/foo.md", import.meta.url).pathname),
+    fromFileUrl(new URL("../static/foo.md", import.meta.url)),
   );
   assertEquals(
     secureStatic("foo.md"),
-    fromFileUrl(new URL("../static/foo.md", import.meta.url).pathname),
+    fromFileUrl(new URL("../static/foo.md", import.meta.url)),
   );
   assertNotEquals(
     secureStatic("foo.md"),
-    fromFileUrl(new URL("./static/foo.md", import.meta.url).pathname),
+    fromFileUrl(new URL("./static/foo.md", import.meta.url)),
   );
 });
 
@@ -48,6 +48,13 @@ Deno.test("securePath with bad rootDirectory", function (): void {
     },
     Error,
     "The path of 'rootDirectory' is not a directory.",
+  );
+  assertThrows(
+    (): void => {
+      securePath(new URL("http://example.com/static"))("./foo.md");
+    },
+    Error,
+    "Must be a file URL.",
   );
 });
 
