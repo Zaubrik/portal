@@ -15,15 +15,15 @@ Deno.test("securePath", function (): void {
   );
   assertEquals(
     secureStatic("./foo.md"),
-    new URL("../static/foo.md", import.meta.url).pathname,
+    fromFileUrl(new URL("../static/foo.md", import.meta.url).pathname),
   );
   assertEquals(
     secureStatic("foo.md"),
-    new URL("../static/foo.md", import.meta.url).pathname,
+    fromFileUrl(new URL("../static/foo.md", import.meta.url).pathname),
   );
   assertNotEquals(
     secureStatic("foo.md"),
-    new URL("./static/foo.md", import.meta.url).pathname,
+    fromFileUrl(new URL("./static/foo.md", import.meta.url).pathname),
   );
 });
 
