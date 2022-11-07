@@ -18,6 +18,7 @@ export type {
 } from "https://deno.land/std@0.160.0/log/mod.ts";
 export { decode, encode } from "https://deno.land/std@0.160.0/encoding/hex.ts";
 export * as base64 from "https://deno.land/std@0.160.0/encoding/base64.ts";
+export * as semver from "https://deno.land/std@0.160.0/semver/mod.ts";
 
 /**
  * mixed
@@ -25,10 +26,13 @@ export * as base64 from "https://deno.land/std@0.160.0/encoding/base64.ts";
 export { createOgImage } from "https://deno.land/x/portrait@v0.0.9/mod.ts";
 export {
   create,
+  decode as decodeJwt,
   type Header,
   type Payload,
   verify,
-} from "https://deno.land/x/djwt@v2.7/mod.ts";
+  type VerifyOptions,
+} from "https://raw.githubusercontent.com/timonson/djwt/master/mod.ts";
+// } from "https://deno.land/x/djwt@v2.7/mod.ts";
 export {
   type ClientOptions,
   type SendConfig,
@@ -47,10 +51,12 @@ export {
 } from "https://dev.zaubrik.com/sorcery@v0.0.7/path.js";
 export { equals } from "https://dev.zaubrik.com/sorcery@v0.0.7/booleans/equality.js";
 export {
+  hasProperty,
   isError,
   isNotNull,
   isNull,
   isObject,
+  isObjectAndHasProp,
   isPresent,
   isResponse,
   isString,
@@ -61,10 +67,3 @@ export {
   tryToParse,
 } from "https://dev.zaubrik.com/sorcery@v0.0.7/encoding.js";
 export { removeFirstToEnd } from "https://dev.zaubrik.com/sorcery@v0.0.7/strings/update.js";
-
-// FIX
-export type VerifyOptions = {
-  expLeeway?: number;
-  nbfLeeway?: number;
-  aud?: string | string[];
-};

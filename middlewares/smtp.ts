@@ -107,8 +107,8 @@ export async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
     await client.send(sendConfig);
     await client.close();
     return new Response(null);
-  } catch (err) {
-    throw createHttpError(Status.InternalServerError, err.message);
+  } catch (error) {
+    throw createHttpError(Status.InternalServerError, error.message);
   }
 }
 
