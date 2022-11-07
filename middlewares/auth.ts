@@ -2,7 +2,6 @@ import {
   Context,
   createHttpError,
   decodeJwt,
-  hasProperty,
   isHttpError,
   isNull,
   isObject,

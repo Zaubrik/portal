@@ -67,7 +67,7 @@ Deno.test("verifyBearer valid jwt with predicates", async function () {
     connInfo,
   );
   const returnedCtx = await getLoginRoute(
-    verifyBearer(key, (payload) => isString(payload.iss)),
+    verifyBearer(key, { predicates: [(payload) => isString(payload.iss)] }),
   )(ctx);
   assertEquals(
     returnedCtx.state.payload.iss,
@@ -85,7 +85,7 @@ Deno.test("verifyBearer invalid jwt with predicates", async function () {
   await assertRejects(
     async () => {
       await getLoginRoute(
-        verifyBearer(key, (payload) => isNull(payload.iss)),
+        verifyBearer(key, { predicates: [(payload) => isNull(payload.iss)] }),
       )(ctx);
     },
     Error,
@@ -96,9 +96,13 @@ Deno.test("verifyBearer invalid jwt with predicates", async function () {
       await getLoginRoute(
         verifyBearer(
           key,
-          (payload) => isPresent(payload.iss),
-          (payload) => isNull(payload.iss),
-          (payload) => isPresent(payload.iss),
+          {
+            predicates: [
+              (payload) => isPresent(payload.iss),
+              (payload) => isNull(payload.iss),
+              (payload) => isPresent(payload.iss),
+            ],
+          },
         ),
       )(ctx);
     },
