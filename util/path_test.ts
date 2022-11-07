@@ -1,11 +1,18 @@
 import { assertEquals, assertNotEquals, assertThrows } from "../test_deps.ts";
-import { securePath } from "./path.ts";
+import { fromFileUrl } from "../deps.ts";
+import { getPathnameFs, securePath } from "./path.ts";
 
 Deno.test("securePath", function (): void {
   const rootUrl = new URL("../static/", new URL(import.meta.url));
   const secureStatic = securePath(rootUrl);
-  assertEquals(securePath("/static/")("./foo.md"), "/static/foo.md");
-  assertEquals(securePath("/static/")("./bar/foo.md"), "/static/bar/foo.md");
+  assertEquals(
+    securePath("/static/")("./foo.md"),
+    fromFileUrl(new URL("file:///" + "/static/foo.md")),
+  );
+  assertEquals(
+    securePath("/static/")("./bar/foo.md"),
+    fromFileUrl(new URL("file:///" + "/static/bar/foo.md")),
+  );
   assertEquals(
     secureStatic("./foo.md"),
     new URL("../static/foo.md", import.meta.url).pathname,

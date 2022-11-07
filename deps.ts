@@ -6,7 +6,11 @@ export { type Context } from "https://dev.zaubrik.com/composium@v0.0.7/mod.ts";
 /**
  * std
  */
-export { fromFileUrl, join } from "https://deno.land/std@0.160.0/path/mod.ts";
+export {
+  fromFileUrl,
+  isAbsolute,
+  join,
+} from "https://deno.land/std@0.160.0/path/mod.ts";
 export { ensureFile } from "https://deno.land/std@0.160.0/fs/mod.ts";
 export * from "https://deno.land/std@0.160.0/http/http_errors.ts";
 export * from "https://deno.land/std@0.160.0/http/http_status.ts";

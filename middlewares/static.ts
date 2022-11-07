@@ -1,6 +1,7 @@
 import {
   Context,
   createHttpError,
+  decodeUriComponentSafely,
   isErrorStatus,
   isHttpError,
   join,
@@ -45,7 +46,7 @@ export function serveStatic(fsRoot: string | URL, {
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
       const subdomainStr = hasSubdomainDirectory ? getSubdomainPath(ctx) : "";
-      const pathname = getPathnameFs(ctx.url);
+      const pathname = decodeUriComponentSafely(ctx.url.pathname);
       const newPath = join(
         pathRoot,
         subdomainStr,

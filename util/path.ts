@@ -1,4 +1,9 @@
-import { decodeUriComponentSafely, fromFileUrl, isString } from "../deps.ts";
+import {
+  decodeUriComponentSafely,
+  fromFileUrl,
+  isAbsolute,
+  isString,
+} from "../deps.ts";
 
 /**
  * importMetaResolveFs.
@@ -31,13 +36,13 @@ export function importMetaResolveFs(moduleUrl: string) {
  */
 export function getPathnameFs(urlOrPath: URL | string): string {
   if (isString(urlOrPath)) {
-    if (urlOrPath.startsWith("/") || urlOrPath.startsWith("./")) {
+    if (isAbsolute(urlOrPath) || urlOrPath.startsWith("./")) {
       return decodeUriComponentSafely(urlOrPath);
     } else {
       return getPathnameFs(new URL(urlOrPath));
     }
   }
-  return urlOrPath.href.startsWith("file://")
+  return urlOrPath.protocol === "file:"
     ? fromFileUrl(urlOrPath)
     : decodeUriComponentSafely(urlOrPath.pathname);
 }
@@ -62,6 +67,9 @@ export function securePath(rootDirectory: URL | string) {
   const rootDirectoryObj = rootDirectory instanceof URL
     ? rootDirectory
     : new URL("file://" + rootDirectory);
+  if (rootDirectoryObj.protocol !== "file:") {
+    throw new TypeError("Must be a file URL.");
+  }
   if ((rootDirectoryObj.pathname.slice(-1) !== "/")) {
     throw new TypeError("The path of 'rootDirectory' is not a directory.");
   }
