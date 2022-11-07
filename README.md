@@ -10,7 +10,8 @@ our free [URL Pattern User Interface](https://dev.zaubrik.com/urlpattern/).
 ## Important
 
 Always check the the `groups` properties of the `URLPatternResult` for being
-_present_. The implementations seem to vary regarding empty string or `undefined`.
+_present_. The implementations seem to vary regarding empty string or
+`undefined`.
 
 ## API
 
