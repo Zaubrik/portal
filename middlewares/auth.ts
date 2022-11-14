@@ -78,6 +78,7 @@ export async function verifyVersionedJwt(
 ) {
   const predicates = options?.predicates || [];
   const cryptoKey = options.isDevelopment
+    // deno-lint-ignore no-explicit-any
     ? {} as any
     : await fetchRsaCryptoKey(keyUrl, algorithm);
   if (!options.isDevelopment && !isCryptoKey(cryptoKey)) {
