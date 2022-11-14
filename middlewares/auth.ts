@@ -23,6 +23,7 @@ type FetchData = {
 type PayloadPredicate = (payload: Payload) => boolean;
 type Options = VerifyOptions & {
   predicates?: PayloadPredicate[];
+  isDevelopment?: boolean;
 };
 
 function isCryptoKey(input: unknown): input is CryptoKey {
@@ -76,8 +77,10 @@ export async function verifyVersionedJwt(
   options: Options = {},
 ) {
   const predicates = options?.predicates || [];
-  const cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm);
-  if (!isCryptoKey(cryptoKey)) {
+  const cryptoKey = options.isDevelopment
+    ? {} as any
+    : await fetchRsaCryptoKey(keyUrl, algorithm);
+  if (!options.isDevelopment && !isCryptoKey(cryptoKey)) {
     throw new Error("No 'cryptoKey'.");
   }
   const checkAndVerify = checkVersionAndVerify(cryptoKey, {
