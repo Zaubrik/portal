@@ -12,56 +12,87 @@ import {
   verify,
   VerifyOptions,
 } from "../deps.ts";
-import { importRsaKeyFromPem } from "../util/crypto/crypto_key.ts";
+import { fetchRsaCryptoKey, RsaAlgorithm } from "../util/crypto/crypto_key.ts";
 
 export type AuthState = { payload: Payload };
+type FetchData = {
+  keyUrl: string | URL;
+  algorithm: RsaAlgorithm;
+  keySemVer?: string;
+};
 type PayloadPredicate = (payload: Payload) => boolean;
 type Options = VerifyOptions & {
   predicates?: PayloadPredicate[];
-  keyUrl?: string | URL;
 };
 
-let keyVersion = "0.0.0";
-if (!semver.valid(keyVersion)) {
-  throw new Error("The assigned key version is an invalid 'SemVer'.");
+function isCryptoKey(input: unknown): input is CryptoKey {
+  return input instanceof CryptoKey;
+}
+
+function verifyBearer(headers: Headers): string {
+  const authHeader = headers.get("Authorization");
+  if (isNull(authHeader)) {
+    throw new Error("No 'Authorization' header.");
+  } else if (!authHeader.startsWith("Bearer ") || authHeader.length <= 7) {
+    throw new Error("Invalid 'Authorization' header.");
+  } else {
+    return authHeader.slice(7);
+  }
 }
 
 /**
  * A curried middleware which takes `CryptoKey` and `Options` and verifys a JWT
  * sent with the `Authorization` header.  If the JWT is invalid or not present
- * an `HttpError` with the status `401` is thrown. Otherwise the JWT's `payload`
+ * an `HttpError` with the status `401` is thrown. Otherwise the JWT's `Payload`
  * is assigned to the `state`.
  */
-export function verifyBearer(cryptoKey: CryptoKey, options: Options = {}) {
+export function verifyJwt(cryptoKey: CryptoKey, options: Options = {}) {
   const predicates = options?.predicates || [];
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
-      const authHeader = ctx.request.headers.get("Authorization");
-      if (isNull(authHeader)) {
-        throw new Error("No 'Authorization' header.");
-      } else if (!authHeader.startsWith("Bearer ") || authHeader.length <= 7) {
-        throw new Error("Invalid 'Authorization' header.");
+      const jwt = verifyBearer(ctx.request.headers);
+      const payload = await verify(jwt, cryptoKey, options);
+      if (predicates.every((predicate) => predicate(payload))) {
+        ctx.state.payload = payload;
       } else {
-        const jwt = authHeader.slice(7);
-        const keyAndVerMaybe = await checkVersion(options.keyUrl, jwt);
-        if (keyAndVerMaybe) {
-          cryptoKey = keyAndVerMaybe.cryptoKey;
-        }
-        if (!(cryptoKey instanceof CryptoKey)) {
-          throw createHttpError(
-            Status.InternalServerError,
-            "Invalid 'cryptoKey'.",
-          );
-        }
-        const payload = await verify(jwt, cryptoKey, options);
-        if (keyAndVerMaybe) {
-          keyVersion = keyAndVerMaybe.ver;
-        }
-        if (predicates.every((predicate) => predicate(payload))) {
-          ctx.state.payload = payload;
-        } else {
-          throw new Error("The payload does not satisfy all predicates.");
-        }
+        throw new Error("The payload does not satisfy all predicates.");
+      }
+      return ctx;
+    } catch (error) {
+      throw createUnauthorizedError(error);
+    }
+  };
+}
+
+/**
+ * A curried middleware which takes `FetchData` and `Options` and verifys a JWT
+ * sent with the `Authorization` header. It also checks the `ver` header, which
+ * refers to the `CryptoKey`s version, and fetches a new `CryptoKey` if required.
+ * If the JWT is invalid or not present an `HttpError` with the status `401` is
+ * thrown. Otherwise the JWT's `Payload` is assigned to the `state`.
+ */
+export async function verifyVersionedJwt(
+  { keyUrl, algorithm, keySemVer = "0.0.0" }: FetchData,
+  options: Options = {},
+) {
+  const predicates = options?.predicates || [];
+  const cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm);
+  if (!isCryptoKey(cryptoKey)) {
+    throw new Error("No 'cryptoKey'.");
+  }
+  const checkAndVerify = checkVersionAndVerify(cryptoKey, {
+    keyUrl,
+    algorithm,
+    keySemVer,
+  }, options);
+  return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
+    try {
+      const jwt = verifyBearer(ctx.request.headers);
+      const payload = await checkAndVerify(jwt);
+      if (predicates.every((predicate) => predicate(payload))) {
+        ctx.state.payload = payload;
+      } else {
+        throw new Error("The payload does not satisfy all predicates.");
       }
       return ctx;
     } catch (error) {
@@ -70,43 +101,48 @@ export function verifyBearer(cryptoKey: CryptoKey, options: Options = {}) {
   };
 }
 
-export async function fetchRsaCryptoKey(
-  keyUrl: string | URL,
-  alg: Parameters<typeof importRsaKeyFromPem>[1],
+function checkVersionAndVerify(
+  cryptoKey: CryptoKey,
+  { keyUrl, algorithm, keySemVer }: Required<FetchData>,
+  options: Options,
 ) {
-  const pem = await fetch(keyUrl).then((res) => res.text());
-  return await importRsaKeyFromPem(pem, alg, "public");
-}
-
-async function checkVersion(
-  keyUrl: string | URL | undefined,
-  jwt: string,
-): Promise<{ cryptoKey: CryptoKey; ver: string } | null> {
-  if (keyUrl) {
+  return async (jwt: string): Promise<Payload> => {
     const [header] = decodeJwt(jwt);
     if (isObject(header)) {
       const { ver, alg } = header;
       if (isString(ver) && semver.valid(ver)) {
-        if (alg === "RS256" || alg === "RS384" || alg === "RS512") {
-          if (semver.gt(ver, keyVersion)) {
-            try {
-              const cryptoKey = await fetchRsaCryptoKey(keyUrl, alg);
-              return { cryptoKey, ver };
-            } catch (error) {
-              throw createHttpError(Status.InternalServerError, error.message);
-            }
+        if (alg === algorithm) {
+          if (semver.eq(ver, keySemVer)) {
+            return await verify(jwt, cryptoKey, options);
+          } else if (semver.gt(ver, keySemVer)) {
+            cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm).catch(
+              (error) => {
+                throw createHttpError(
+                  Status.InternalServerError,
+                  error.message,
+                );
+              },
+            );
+            const payload = await verify(jwt, cryptoKey, options);
+            keySemVer = ver;
+            return payload;
+          } else {
+            throw new Error(
+              "The jwt's version is not valid anymore.",
+            );
           }
         } else {
           throw new Error(
-            "The jwt's 'alg' must be 'RS256', 'RS384' or 'RS512'.",
+            "The jwt's 'alg' claim doesn't match the predefined algorithm.",
           );
         }
       } else {
         throw new Error("The jwt has an invalid 'SemVer'.");
       }
+    } else {
+      throw new Error("The jwt has an invalid 'Header'.");
     }
-  }
-  return null;
+  };
 }
 
 function createUnauthorizedError(error: Error) {

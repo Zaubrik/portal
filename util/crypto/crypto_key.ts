@@ -68,7 +68,7 @@ export async function generatePemFromRsaKey(
 }
 
 /**
- * Import a PEM encoded RSA private key, to use for RSA-PSS signing.
+ * Imports a PEM encoded RSA private key, to use for RSA-PSS signing.
  * Takes a string containing the PEM encoded key, and returns a Promise
  * that will resolve to a CryptoKey representing the private key.
  */
@@ -98,4 +98,15 @@ export async function importRsaKeyFromPem(
     true,
     kind === "private" ? ["sign"] : ["verify"],
   );
+}
+
+/**
+ * Takes a `keyUrl` and an `RsaAlgorithm` and returns the fetched public `CryptoKey`.
+ */
+export async function fetchRsaCryptoKey(
+  keyUrl: string | URL,
+  alg: RsaAlgorithm,
+): Promise<CryptoKey> {
+  const pem = await fetch(keyUrl).then((res) => res.text());
+  return await importRsaKeyFromPem(pem, alg, "public");
 }

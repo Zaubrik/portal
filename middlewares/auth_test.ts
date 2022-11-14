@@ -1,4 +1,4 @@
-import { AuthState, verifyBearer } from "./auth.ts";
+import { AuthState, verifyJwt } from "./auth.ts";
 import {
   assertEquals,
   assertRejects,
@@ -26,8 +26,8 @@ const payload = { iss: "Joe" };
 const jwt = await create(header, payload, key);
 const getLoginRoute = createRoute("GET")({ pathname: "/login" });
 
-Deno.test("verifyBearer valid jwt", async function () {
-  const returnedCtx = await getLoginRoute(verifyBearer(key))(
+Deno.test("verifyJwt valid jwt", async function () {
+  const returnedCtx = await getLoginRoute(verifyJwt(key))(
     new Context<AuthState>(
       new Request("https://example.com/login", {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -42,7 +42,7 @@ Deno.test("verifyBearer valid jwt", async function () {
   );
 });
 
-Deno.test("verifyBearer invalid jwt", async function () {
+Deno.test("verifyJwt invalid jwt", async function () {
   const ctx = new Context<AuthState>(
     new Request("https://example.com/login", {
       headers: { Authorization: `Bearer ${jwt}INVALID` },
@@ -52,14 +52,14 @@ Deno.test("verifyBearer invalid jwt", async function () {
   );
   await assertRejects(
     async () => {
-      await getLoginRoute(verifyBearer(key))(ctx);
+      await getLoginRoute(verifyJwt(key))(ctx);
     },
     HttpError,
     "The serialization of the jwt is invalid.",
   );
 });
 
-Deno.test("verifyBearer valid jwt with predicates", async function () {
+Deno.test("verifyJwt valid jwt with predicates", async function () {
   const ctx = new Context<AuthState>(
     new Request("https://example.com/login", {
       headers: { Authorization: `Bearer ${jwt}` },
@@ -67,7 +67,7 @@ Deno.test("verifyBearer valid jwt with predicates", async function () {
     connInfo,
   );
   const returnedCtx = await getLoginRoute(
-    verifyBearer(key, { predicates: [(payload) => isString(payload.iss)] }),
+    verifyJwt(key, { predicates: [(payload) => isString(payload.iss)] }),
   )(ctx);
   assertEquals(
     returnedCtx.state.payload.iss,
@@ -75,7 +75,7 @@ Deno.test("verifyBearer valid jwt with predicates", async function () {
   );
 });
 
-Deno.test("verifyBearer invalid jwt with predicates", async function () {
+Deno.test("verifyJwt invalid jwt with predicates", async function () {
   const ctx = new Context<AuthState>(
     new Request("https://example.com/login", {
       headers: { Authorization: `Bearer ${jwt}` },
@@ -85,7 +85,7 @@ Deno.test("verifyBearer invalid jwt with predicates", async function () {
   await assertRejects(
     async () => {
       await getLoginRoute(
-        verifyBearer(key, { predicates: [(payload) => isNull(payload.iss)] }),
+        verifyJwt(key, { predicates: [(payload) => isNull(payload.iss)] }),
       )(ctx);
     },
     Error,
@@ -94,7 +94,7 @@ Deno.test("verifyBearer invalid jwt with predicates", async function () {
   await assertRejects(
     async () => {
       await getLoginRoute(
-        verifyBearer(
+        verifyJwt(
           key,
           {
             predicates: [

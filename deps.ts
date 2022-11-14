@@ -1,7 +1,7 @@
 /**
  * composium
  */
-export { type Context } from "https://dev.zaubrik.com/composium@v0.0.7/mod.ts";
+export { type Context } from "https://dev.zaubrik.com/composium@v0.0.8/mod.ts";
 
 /**
  * std
@@ -10,19 +10,19 @@ export {
   fromFileUrl,
   isAbsolute,
   join,
-} from "https://deno.land/std@0.160.0/path/mod.ts";
-export { ensureFile } from "https://deno.land/std@0.160.0/fs/mod.ts";
-export * from "https://deno.land/std@0.160.0/http/http_errors.ts";
-export * from "https://deno.land/std@0.160.0/http/http_status.ts";
-export { serveFile } from "https://deno.land/std@0.160.0/http/file_server.ts";
-export * as log from "https://deno.land/std@0.160.0/log/mod.ts";
+} from "https://deno.land/std@0.164.0/path/mod.ts";
+export { ensureFile } from "https://deno.land/std@0.164.0/fs/mod.ts";
+export * from "https://deno.land/std@0.164.0/http/http_errors.ts";
+export * from "https://deno.land/std@0.164.0/http/http_status.ts";
+export { serveFile } from "https://deno.land/std@0.164.0/http/file_server.ts";
+export * as log from "https://deno.land/std@0.164.0/log/mod.ts";
 export type {
   LogConfig,
   Logger,
-} from "https://deno.land/std@0.160.0/log/mod.ts";
-export { decode, encode } from "https://deno.land/std@0.160.0/encoding/hex.ts";
-export * as base64 from "https://deno.land/std@0.160.0/encoding/base64.ts";
-export * as semver from "https://deno.land/std@0.160.0/semver/mod.ts";
+} from "https://deno.land/std@0.164.0/log/mod.ts";
+export { decode, encode } from "https://deno.land/std@0.164.0/encoding/hex.ts";
+export * as base64 from "https://deno.land/std@0.164.0/encoding/base64.ts";
+export * as semver from "https://deno.land/std@0.164.0/semver/mod.ts";
 
 /**
  * mixed
@@ -35,8 +35,7 @@ export {
   type Payload,
   verify,
   type VerifyOptions,
-} from "https://raw.githubusercontent.com/timonson/djwt/master/mod.ts";
-// } from "https://deno.land/x/djwt@v2.7/mod.ts";
+} from "https://deno.land/x/djwt@v2.8/mod.ts";
 export {
   type ClientOptions,
   type SendConfig,

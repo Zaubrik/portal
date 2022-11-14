@@ -3,8 +3,8 @@ export {
   assertNotEquals,
   assertRejects,
   assertThrows,
-} from "https://deno.land/std@0.161.0/testing/asserts.ts";
-export { delay } from "https://deno.land/std@0.161.0/async/delay.ts";
+} from "https://deno.land/std@0.164.0/testing/asserts.ts";
+export { delay } from "https://deno.land/std@0.164.0/async/delay.ts";
 export {
   compose,
   composeSync,
@@ -12,14 +12,14 @@ export {
   createHandler,
   createRoute,
   listen,
-} from "https://dev.zaubrik.com/composium@v0.0.7/mod.ts";
+} from "https://dev.zaubrik.com/composium@v0.0.8/mod.ts";
 export {
   create,
   getNumericDate,
   type Header,
   type Payload,
   verify,
-} from "https://deno.land/x/djwt@v2.7/mod.ts";
+} from "https://deno.land/x/djwt@v2.8/mod.ts";
 export { identity } from "https://dev.zaubrik.com/sorcery@v0.0.7/higher_order.js";
 export {
   isNull,
