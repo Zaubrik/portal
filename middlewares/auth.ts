@@ -82,7 +82,7 @@ export async function verifyVersionedJwt(
     ? {} as any
     : await fetchRsaCryptoKey(keyUrl, algorithm);
   if (!options.isDevelopment && !isCryptoKey(cryptoKey)) {
-    throw new Error("No 'cryptoKey'.");
+    throw new Error("No 'cryptoKey' in production mode.");
   }
   const checkAndVerify = checkVersionAndVerify(cryptoKey, {
     keyUrl,
