@@ -51,7 +51,7 @@ async function logMessage<C extends Context>(
         `${ctx.request.method} ${ctx.request.url} [${ctx.response.status}]`,
       );
       if (ctx.error !== null) {
-        console.log(error);
+        console.log(ctx.error);
       }
     } else {
       const message = await createMessage(ctx);
