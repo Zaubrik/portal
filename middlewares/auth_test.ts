@@ -67,7 +67,7 @@ Deno.test("verifyJwt valid jwt with predicates", async function () {
     connInfo,
   );
   const returnedCtx = await getLoginRoute(
-    verifyJwt(key, { predicates: [(payload) => isString(payload.iss)] }),
+    verifyJwt(key, [(payload) => isString(payload.iss)]),
   )(ctx);
   assertEquals(
     returnedCtx.state.payload.iss,
@@ -85,7 +85,7 @@ Deno.test("verifyJwt invalid jwt with predicates", async function () {
   await assertRejects(
     async () => {
       await getLoginRoute(
-        verifyJwt(key, { predicates: [(payload) => isNull(payload.iss)] }),
+        verifyJwt(key, [(payload) => isNull(payload.iss)]),
       )(ctx);
     },
     Error,
@@ -96,13 +96,11 @@ Deno.test("verifyJwt invalid jwt with predicates", async function () {
       await getLoginRoute(
         verifyJwt(
           key,
-          {
-            predicates: [
-              (payload) => isPresent(payload.iss),
-              (payload) => isNull(payload.iss),
-              (payload) => isPresent(payload.iss),
-            ],
-          },
+          [
+            (payload) => isPresent(payload.iss),
+            (payload) => isNull(payload.iss),
+            (payload) => isPresent(payload.iss),
+          ],
         ),
       )(ctx);
     },

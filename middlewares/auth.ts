@@ -15,15 +15,12 @@ import {
 import { fetchRsaCryptoKey, RsaAlgorithm } from "../util/crypto/crypto_key.ts";
 
 export type AuthState = { payload: Payload };
-type FetchData = {
-  keyUrl: string | URL;
-  algorithm: RsaAlgorithm;
-  keySemVer?: string;
-};
 type PayloadPredicate = (payload: Payload) => boolean;
 type Options = VerifyOptions & {
   predicates?: PayloadPredicate[];
-  isDevelopment?: boolean;
+  keyUrl: string | URL;
+  algorithm: RsaAlgorithm;
+  keySemVer?: string;
 };
 
 function isCryptoKey(input: unknown): input is CryptoKey {
@@ -41,18 +38,14 @@ function verifyBearer(headers: Headers): string {
   }
 }
 
-/**
- * A curried middleware which takes `CryptoKey` and `Options` and verifys a JWT
- * sent with the `Authorization` header.  If the JWT is invalid or not present
- * an `HttpError` with the status `401` is thrown. Otherwise the JWT's `Payload`
- * is assigned to the `state`.
- */
-export function verifyJwt(cryptoKey: CryptoKey, options: Options = {}) {
-  const predicates = options?.predicates || [];
+export function verifyJwt(
+  cryptoKey: CryptoKey,
+  predicates: PayloadPredicate[] = [],
+) {
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const jwt = verifyBearer(ctx.request.headers);
-      const payload = await verify(jwt, cryptoKey, options);
+      const payload = await verify(jwt, cryptoKey);
       if (predicates.every((predicate) => predicate(payload))) {
         ctx.state.payload = payload;
       } else {
@@ -65,30 +58,18 @@ export function verifyJwt(cryptoKey: CryptoKey, options: Options = {}) {
   };
 }
 
-/**
- * A curried middleware which takes `FetchData` and `Options` and verifys a JWT
- * sent with the `Authorization` header. It also checks the `ver` header, which
- * refers to the `CryptoKey`s version, and fetches a new `CryptoKey` if required.
- * If the JWT is invalid or not present an `HttpError` with the status `401` is
- * thrown. Otherwise the JWT's `Payload` is assigned to the `state`.
- */
 export async function verifyVersionedJwt(
-  { keyUrl, algorithm, keySemVer = "0.0.0" }: FetchData,
-  options: Options = {},
+  { keyUrl, algorithm, keySemVer = "0.0.0", predicates = [] }: Options,
 ) {
-  const predicates = options?.predicates || [];
-  const cryptoKey = options.isDevelopment
-    // deno-lint-ignore no-explicit-any
-    ? {} as any
-    : await fetchRsaCryptoKey(keyUrl, algorithm);
-  if (!options.isDevelopment && !isCryptoKey(cryptoKey)) {
+  const cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm);
+  if (!isCryptoKey(cryptoKey)) {
     throw new Error("No 'cryptoKey' in production mode.");
   }
   const checkAndVerify = checkVersionAndVerify(cryptoKey, {
     keyUrl,
     algorithm,
     keySemVer,
-  }, options);
+  });
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const jwt = verifyBearer(ctx.request.headers);
@@ -107,8 +88,7 @@ export async function verifyVersionedJwt(
 
 function checkVersionAndVerify(
   cryptoKey: CryptoKey,
-  { keyUrl, algorithm, keySemVer }: Required<FetchData>,
-  options: Options,
+  { keyUrl, algorithm, keySemVer = "0.0.0" }: Options,
 ) {
   return async (jwt: string): Promise<Payload> => {
     const [header] = decodeJwt(jwt);
@@ -117,7 +97,7 @@ function checkVersionAndVerify(
       if (isString(ver) && semver.valid(ver)) {
         if (alg === algorithm) {
           if (semver.eq(ver, keySemVer)) {
-            return await verify(jwt, cryptoKey, options);
+            return await verify(jwt, cryptoKey);
           } else if (semver.gt(ver, keySemVer)) {
             cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm).catch(
               (error) => {
@@ -127,7 +107,7 @@ function checkVersionAndVerify(
                 );
               },
             );
-            const payload = await verify(jwt, cryptoKey, options);
+            const payload = await verify(jwt, cryptoKey);
             keySemVer = ver;
             return payload;
           } else {
