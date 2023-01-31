@@ -2,8 +2,10 @@ import {
   ClientOptions,
   Context,
   createHttpError,
+  isFunction,
   isHttpError,
   isPresent,
+  isSingleMail,
   isString,
   SendConfig,
   SMTPClient,
@@ -11,6 +13,10 @@ import {
 } from "../deps.ts";
 
 type Options = { isTest?: boolean };
+type SendConfigCb = (
+  id: string,
+  bodyMessage: string,
+) => SendConfig | Promise<SendConfig>;
 
 /**
  * A curried middleware which takes `ClientOptions` and `createSendConfig` and
@@ -48,15 +54,12 @@ type Options = { isTest?: boolean };
  *   };
  * }
  *
- * post({pathname: "/email/:id/send"})(send(clientOptions, createSendConfig)
+ * post({pathname: "/email/:id/send"})(send(clientOptions, sendConfigOrCb)
  * ```
  */
 export function send(
   clientOptions: ClientOptions,
-  createSendConfig?: (
-    id: string,
-    bodyMessage: string,
-  ) => SendConfig | Promise<SendConfig>,
+  sendConfigOrCb?: SendConfig | SendConfigCb,
   { isTest = false }: Options = {},
 ) {
   if (isTest) {
@@ -66,16 +69,22 @@ export function send(
     };
   }
   return async <C extends Context>(ctx: C): Promise<C> => {
-    const client = new SMTPClient(clientOptions);
     try {
       const { id } = getPathnameParams(ctx);
       const bodyMessage = await ctx.request.text();
-      const sendConfig = createSendConfig
-        ? await createSendConfig(id, bodyMessage)
+      const sendConfig = sendConfigOrCb
+        ? isFunction(sendConfigOrCb)
+          ? await (sendConfigOrCb as SendConfigCb)(id, bodyMessage)
+          : sendConfigOrCb
         : JSON.parse(bodyMessage);
       if (isSendConfig(sendConfig)) {
-        ctx.response = await sendEmail(client, sendConfig);
-        return ctx;
+        try {
+          await sendEmail(clientOptions, [sendConfig]);
+          ctx.response = new Response();
+          return ctx;
+        } catch (error) {
+          throw createHttpError(Status.InternalServerError, error.message);
+        }
       } else {
         throw createHttpError(
           Status.BadRequest,
@@ -83,7 +92,6 @@ export function send(
         );
       }
     } catch (error) {
-      await client.close();
       throw isHttpError(error)
         ? error
         : createHttpError(Status.BadRequest, error.message);
@@ -102,13 +110,38 @@ function getPathnameParams(ctx: Context): { id: string } {
   return { id };
 }
 
-export async function sendEmail(client: SMTPClient, sendConfig: SendConfig) {
+async function* makeGenerator(sendConfigs: SendConfig[], client: SMTPClient) {
+  const i = sendConfigs.findIndex((config) =>
+    !isSingleMail(config.to as string)
+  );
+  if (i >= 0) {
+    throw new Error(`The sendconfig with the index ${i} has an invalid email.`);
+  }
+  for (const config of sendConfigs) {
+    yield await client.send(config); // Returns `undefined`
+    console.log("sendConfig:", config);
+  }
+}
+
+export async function sendEmail(
+  clientOptions: ClientOptions,
+  sendConfigs: SendConfig[],
+) {
+  const client = new SMTPClient(clientOptions);
+  const results = [];
   try {
-    await client.send(sendConfig);
+    for await (const result of makeGenerator(sendConfigs, client)) {
+      results.push(result);
+    }
     await client.close();
-    return new Response(null);
+    return results.length;
   } catch (error) {
-    throw createHttpError(Status.InternalServerError, error.message);
+    try {
+      await client.close();
+    } catch {
+      (() => {});
+    }
+    throw error;
   }
 }
 

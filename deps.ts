@@ -41,6 +41,7 @@ export {
   type SendConfig,
   SMTPClient,
 } from "https://deno.land/x/denomailer@1.5.3/mod.ts";
+export { isSingleMail } from "https://deno.land/x/denomailer@1.5.3/config/mail/email.ts";
 
 /**
  * sorcery
@@ -56,6 +57,7 @@ export { equals } from "https://dev.zaubrik.com/sorcery@v0.0.8/booleans/equality
 export {
   hasProperty,
   isError,
+  isFunction,
   isNotNull,
   isNull,
   isObject,
