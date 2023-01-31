@@ -49,6 +49,6 @@ Deno.test("overview", async function () {
       );
     },
     HttpError,
-    "The file extension of the resource is invalid.",
+    "The resource has an invalid file extension.",
   );
 });

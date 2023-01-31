@@ -10,7 +10,7 @@ import { Context, createHttpError, createOgImage, Status } from "../deps.ts";
 export async function serveOgImage<C extends Context>(ctx: C): Promise<C> {
   try {
     const canvas = await createOgImage(ctx.request);
-    ctx.response = new Response(canvas.toBuffer(), {
+    ctx.response = new Response(canvas.buffer, {
       headers: {
         "content-type": "image/png",
         "Cache-Control":
