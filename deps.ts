@@ -27,7 +27,7 @@ export * as semver from "https://deno.land/std@0.173.0/semver/mod.ts";
 /**
  * mixed
  */
-export { createOgImage } from "https://deno.land/x/portrait@v0.0.9/mod.ts";
+export { createOgImage } from "https://deno.land/x/portrait@v0.1.1/mod.ts";
 export {
   create,
   decode as decodeJwt,
