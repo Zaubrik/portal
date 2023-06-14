@@ -1,4 +1,4 @@
-import { ensureFile, isError, isString } from "./deps.ts";
+import { ensureFile } from "./deps.ts";
 import { decode } from "./util.ts";
 
 type CommandOptions = ConstructorParameters<typeof Deno.Command>[1];
@@ -43,10 +43,10 @@ export async function spawnSubprocess(
         });
       }
       throw new Error(
-        isString(options?.errorMessage) ? options?.errorMessage : err,
+        typeof options?.errorMessage ? options?.errorMessage : err,
       );
     }
-  } catch (err) {
-    throw isError(err) ? err : new Error("[non-error thrown]");
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("[non-error thrown]");
   }
 }

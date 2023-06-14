@@ -1,4 +1,4 @@
-import { fromFileUrl, isAbsolute, isString } from "./deps.ts";
+import { fromFileUrl, isAbsolute } from "./deps.ts";
 import { decodeUriComponentSafely } from "./url.ts";
 
 /**
@@ -31,7 +31,7 @@ export function importMetaResolveFs(moduleUrl: string) {
  * @return {string}
  */
 export function getPathnameFs(urlOrPath: URL | string): string {
-  if (isString(urlOrPath)) {
+  if (typeof urlOrPath === "string") {
     if (isAbsolute(urlOrPath) || urlOrPath.startsWith("./")) {
       return decodeUriComponentSafely(urlOrPath);
     } else {
@@ -55,7 +55,7 @@ export function getPathnameFs(urlOrPath: URL | string): string {
  * @return {(userSuppliedFilename: string) => string}
  */
 export function securePath(rootDirectory: URL | string) {
-  if (isString(rootDirectory)) {
+  if (typeof rootDirectory === "string") {
     if (rootDirectory[0] !== "/") {
       throw new TypeError("The path of 'rootDirectory' is not absolute.");
     }

@@ -416,6 +416,9 @@
     "https://dev.zaubrik.com/sorcery@v0.1.0/path.js": "c0f6d9c1ec2f30c030411ce6a2c5f33f306218b6205adce832e1e8057292b4ab",
     "https://dev.zaubrik.com/sorcery@v0.1.0/strings/mapping.js": "e55c45c6160a0fbd5648ee134b11f1c9f7ad1e4049adbaa39ff39005c6bb8e21",
     "https://dev.zaubrik.com/sorcery@v0.1.0/strings/update.js": "6b13342807f7e6e634cc02915c562d71d526337ed96a652e12b9fb7804e1837b",
-    "https://dev.zaubrik.com/sorcery@v0.1.0/type.js": "af079f0fb533f109c4a40c5dc5bb76bae29145a5fd1f07d8b4d0cc3ea4e0c623"
+    "https://dev.zaubrik.com/sorcery@v0.1.0/type.js": "af079f0fb533f109c4a40c5dc5bb76bae29145a5fd1f07d8b4d0cc3ea4e0c623",
+    "https://dev.zaubrik.com/sorcery@v0.1.1/booleans/equality.js": "cb01d316079c6bf7d2aaa4b1c020166d2a57b808c8ecbadd0ae6729313fc485d",
+    "https://dev.zaubrik.com/sorcery@v0.1.1/path.js": "c0f6d9c1ec2f30c030411ce6a2c5f33f306218b6205adce832e1e8057292b4ab",
+    "https://dev.zaubrik.com/sorcery@v0.1.1/type.js": "af079f0fb533f109c4a40c5dc5bb76bae29145a5fd1f07d8b4d0cc3ea4e0c623"
   }
 }

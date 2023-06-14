@@ -11,20 +11,3 @@ export {
   encode as encodeToHex,
 } from "https://deno.land/std@0.190.0/encoding/hex.ts";
 export * as base64 from "https://deno.land/std@0.190.0/encoding/base64.ts";
-
-/**
- * zaubrik
- */
-export {
-  hasProperty,
-  isError,
-  isFunction,
-  isNotNull,
-  isNull,
-  isObject,
-  isObjectAndHasProp,
-  isPresent,
-  isResponse,
-  isString,
-  isUrl,
-} from "https://dev.zaubrik.com/sorcery@v0.1.0/type.js";
