@@ -43,7 +43,7 @@ export async function spawnSubprocess(
         });
       }
       throw new Error(
-        typeof options?.errorMessage ? options?.errorMessage : err,
+        options?.errorMessage ? options?.errorMessage : err,
       );
     }
   } catch (error) {
