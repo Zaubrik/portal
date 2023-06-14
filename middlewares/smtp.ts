@@ -1,16 +1,16 @@
 import {
-  ClientOptions,
-  Context,
+  type ClientOptions,
+  type Context,
   createHttpError,
   isFunction,
   isHttpError,
   isPresent,
   isSingleMail,
   isString,
-  SendConfig,
+  type SendConfig,
   SMTPClient,
   Status,
-} from "../deps.ts";
+} from "./deps.ts";
 
 type Options = { isTest?: boolean };
 type SendConfigCb = (

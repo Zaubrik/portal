@@ -1,27 +1,30 @@
 import {
-  Context,
+  type Context,
   createHttpError,
   decodeJwt,
   isHttpError,
   isNull,
   isObject,
   isString,
-  Payload,
+  type Payload,
   semver,
   Status,
   verify,
-  VerifyOptions,
-} from "../deps.ts";
-import { fetchRsaCryptoKey, RsaAlgorithm } from "../util/crypto/crypto_key.ts";
+  type VerifyOptions,
+} from "./deps.ts";
+import {
+  fetchRsaCryptoKey,
+  type RsaAlgorithm,
+} from "../functions/crypto/crypto_key.ts";
 
 export type AuthState = { payload: Payload };
-type PayloadPredicate = (payload: Payload) => boolean;
-type Options = VerifyOptions & {
+export type Options = VerifyOptions & {
   predicates?: PayloadPredicate[];
   keyUrl: string | URL;
   algorithm: RsaAlgorithm;
   keySemVer?: string;
 };
+type PayloadPredicate = (payload: Payload) => boolean;
 
 function isCryptoKey(input: unknown): input is CryptoKey {
   return input instanceof CryptoKey;
@@ -65,15 +68,14 @@ export async function verifyVersionedJwt(
   if (!isCryptoKey(cryptoKey)) {
     throw new Error("No 'cryptoKey' in production mode.");
   }
-  const checkAndVerify = checkVersionAndVerify(cryptoKey, {
-    keyUrl,
-    algorithm,
-    keySemVer,
-  });
   return async <C extends Context<AuthState>>(ctx: C): Promise<C> => {
     try {
       const jwt = verifyBearer(ctx.request.headers);
-      const payload = await checkAndVerify(jwt);
+      const payload = await checkVersionAndVerify(jwt, cryptoKey, {
+        keyUrl,
+        algorithm,
+        keySemVer,
+      });
       if (predicates.every((predicate) => predicate(payload))) {
         ctx.state.payload = payload;
       } else {
@@ -86,47 +88,46 @@ export async function verifyVersionedJwt(
   };
 }
 
-function checkVersionAndVerify(
+export async function checkVersionAndVerify(
+  jwt: string,
   cryptoKey: CryptoKey,
   { keyUrl, algorithm, keySemVer = "0.0.0" }: Options,
-) {
-  return async (jwt: string): Promise<Payload> => {
-    const [header] = decodeJwt(jwt);
-    if (isObject(header)) {
-      const { ver, alg } = header;
-      if (isString(ver) && semver.valid(ver)) {
-        if (alg === algorithm) {
-          if (semver.eq(ver, keySemVer)) {
-            return await verify(jwt, cryptoKey);
-          } else if (semver.gt(ver, keySemVer)) {
-            cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm).catch(
-              (error) => {
-                throw createHttpError(
-                  Status.InternalServerError,
-                  error.message,
-                );
-              },
-            );
-            const payload = await verify(jwt, cryptoKey);
-            keySemVer = ver;
-            return payload;
-          } else {
-            throw new Error(
-              "The jwt's version is not valid anymore.",
-            );
-          }
+): Promise<Payload> {
+  const [header] = decodeJwt(jwt);
+  if (isObject(header)) {
+    const { ver, alg } = header;
+    if (isString(ver) && semver.valid(ver)) {
+      if (alg === algorithm) {
+        if (semver.eq(ver, keySemVer)) {
+          return await verify(jwt, cryptoKey);
+        } else if (semver.gt(ver, keySemVer)) {
+          cryptoKey = await fetchRsaCryptoKey(keyUrl, algorithm).catch(
+            (error) => {
+              throw createHttpError(
+                Status.InternalServerError,
+                error.message,
+              );
+            },
+          );
+          const payload = await verify(jwt, cryptoKey);
+          keySemVer = ver;
+          return payload;
         } else {
           throw new Error(
-            "The jwt's 'alg' claim doesn't match the predefined algorithm.",
+            "The jwt's version is not valid anymore.",
           );
         }
       } else {
-        throw new Error("The jwt has an invalid 'SemVer'.");
+        throw new Error(
+          "The jwt's 'alg' claim doesn't match the predefined algorithm.",
+        );
       }
     } else {
-      throw new Error("The jwt has an invalid 'Header'.");
+      throw new Error("The jwt has an invalid 'SemVer'.");
     }
-  };
+  } else {
+    throw new Error("The jwt has an invalid 'Header'.");
+  }
 }
 
 function createUnauthorizedError(error: Error) {

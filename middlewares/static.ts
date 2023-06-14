@@ -1,5 +1,5 @@
 import {
-  Context,
+  type Context,
   createHttpError,
   decodeUriComponentSafely,
   isErrorStatus,
@@ -7,9 +7,9 @@ import {
   join,
   serveFile,
   Status,
-} from "../deps.ts";
+} from "./deps.ts";
 import { getSubdomainPath } from "./subdomain.ts";
-import { getPathnameFs } from "../util/mod.ts";
+import { getPathnameFs } from "../functions/path.ts";
 
 type ServeStaticFileOptions = {
   home?: string;

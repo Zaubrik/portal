@@ -1,5 +1,5 @@
 import { logger } from "./log.ts";
-import { log } from "../deps.ts";
+import { log } from "./deps.ts";
 import { assertEquals, connInfo, Context, createRoute } from "../test_deps.ts";
 
 const logConfig = {

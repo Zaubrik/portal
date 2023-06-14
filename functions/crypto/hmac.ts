@@ -1,7 +1,6 @@
-import { decode } from "../../deps.ts";
-import { HsAlgorithm } from "./crypto_key.ts";
-
-const encoder = new TextEncoder();
+import { decodeFromHex } from "../deps.ts";
+import { encode } from "../util.ts";
+import { type HsAlgorithm } from "./crypto_key.ts";
 
 /**
  * Get the correct algorithm.
@@ -34,7 +33,7 @@ export async function createHmacSha(
 ): Promise<Uint8Array> {
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(key),
+    encode(key),
     getAlgorithm(alg),
     true,
     ["sign"],
@@ -43,7 +42,7 @@ export async function createHmacSha(
     await crypto.subtle.sign(
       getAlgorithm(alg),
       cryptoKey,
-      encoder.encode(signingInput),
+      encode(signingInput),
     ),
   );
 }
@@ -64,7 +63,7 @@ export async function verifyHmacSha(
 ): Promise<boolean> {
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(key),
+    encode(key),
     getAlgorithm(alg),
     true,
     ["verify"],
@@ -73,8 +72,8 @@ export async function verifyHmacSha(
     getAlgorithm(alg),
     cryptoKey,
     typeof signature === "string"
-      ? decode(encoder.encode(signature))
+      ? decodeFromHex(encode(signature))
       : signature,
-    encoder.encode(signingInput),
+    encode(signingInput),
   );
 }

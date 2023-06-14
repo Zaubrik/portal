@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals, assertThrows } from "../test_deps.ts";
-import { fromFileUrl } from "../deps.ts";
+import { fromFileUrl } from "./deps.ts";
 import { securePath } from "./path.ts";
 
 Deno.test("securePath", function (): void {

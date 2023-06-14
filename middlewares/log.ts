@@ -1,14 +1,14 @@
 import {
-  Context,
+  type Context,
   ensureFile,
   isPresent,
   isString,
   isUrl,
   log,
-  LogConfig,
-  Logger,
-} from "../deps.ts";
-import { getPathnameFs } from "../util/mod.ts";
+  type LogConfig,
+  type Logger,
+} from "./deps.ts";
+import { getPathnameFs } from "../functions/path.ts";
 
 async function getDefaultConfig(pathToLogFile: string | URL) {
   const pathname = getPathnameFs(pathToLogFile);
@@ -112,4 +112,9 @@ export async function logger(
     logMessage(ctx, logger, isDevelopment);
     return ctx;
   };
+}
+
+export function logUrl<C extends Context>(ctx: C) {
+  console.log(ctx.url);
+  return ctx;
 }

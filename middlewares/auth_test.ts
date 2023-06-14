@@ -1,4 +1,4 @@
-import { AuthState, verifyJwt } from "./auth.ts";
+import { type AuthState, verifyJwt } from "./auth.ts";
 import {
   assertEquals,
   assertRejects,
@@ -6,12 +6,12 @@ import {
   Context,
   create,
   createRoute,
-  Header,
+  type Header,
   isNull,
   isPresent,
   isString,
 } from "../test_deps.ts";
-import { HttpError } from "../deps.ts";
+import { HttpError } from "./deps.ts";
 
 const key = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-512" },

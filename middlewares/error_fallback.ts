@@ -1,4 +1,4 @@
-import { Context, isHttpError, Status, STATUS_TEXT } from "../deps.ts";
+import { type Context, isHttpError, Status, STATUS_TEXT } from "./deps.ts";
 
 /** Returns an object with the properties `body` and `status`. */
 export function makeResponseData(
@@ -27,6 +27,8 @@ export function fallBack<C extends Context>(ctx: C): C {
     ctx.response = new Response(body, { status, headers });
     return ctx;
   } else {
-    throw Error("Never!");
+    throw Error(
+      "This should never happen because the error property of ctx inside 'fallback' must not be falsy.",
+    );
   }
 }

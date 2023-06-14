@@ -1,5 +1,6 @@
-import { Context, createHttpError, isObject, Status } from "../deps.ts";
-import { JsonObject, verifyHmacSha } from "../util/mod.ts";
+import { type Context, createHttpError, isObject, Status } from "./deps.ts";
+import { type JsonObject } from "../functions/json.ts";
+import { verifyHmacSha } from "../functions/crypto/hmac.ts";
 
 export type WebhooksState = { webhookPayload: JsonObject };
 type HsAlgorithm = Parameters<typeof verifyHmacSha>[1];

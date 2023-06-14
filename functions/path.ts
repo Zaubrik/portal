@@ -1,9 +1,5 @@
-import {
-  decodeUriComponentSafely,
-  fromFileUrl,
-  isAbsolute,
-  isString,
-} from "../deps.ts";
+import { fromFileUrl, isAbsolute, isString } from "./deps.ts";
+import { decodeUriComponentSafely } from "./url.ts";
 
 /**
  * importMetaResolveFs.
@@ -48,7 +44,7 @@ export function getPathnameFs(urlOrPath: URL | string): string {
 }
 
 /**
- * securePath.
+ * Use `securePath` if the path comes from user input or otherwise externally.
  * Adopted from https://nodejs.org/en/knowledge/file-system/security/introduction/
  * ```ts
  * const secureStatic = securePath(new URL("../static/", import.meta.url));

@@ -1,6 +1,6 @@
 // deno-lint-ignore-file
 import { fallBack } from "./error_fallback.ts";
-import { createHttpError, Status } from "../deps.ts";
+import { createHttpError, Status } from "./deps.ts";
 import {
   assertEquals,
   connInfo,

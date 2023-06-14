@@ -1,11 +1,11 @@
-import { Context, isString } from "../deps.ts";
+import { type Context, isString } from "./deps.ts";
 
 type AllowedItems = {
   allowedOrigins?: string | string[];
   allowedHeaders?: string;
   allowedMethods?: string;
 };
-type Options = { enableSubdomains?: boolean };
+type Options = { enableSubdomains?: boolean; allowPreflight?: true };
 
 /**
  * Takes an object of `AllowedItems` and `Options` and returns a middleware
@@ -15,7 +15,7 @@ type Options = { enableSubdomains?: boolean };
  */
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
-  { enableSubdomains = false }: Options = {},
+  { enableSubdomains = false, allowPreflight = true }: Options = {},
 ) {
   return <C extends Context>(ctx: C): C => {
     const origin = ctx.request.headers.get("origin");
@@ -52,6 +52,12 @@ export function enableCors(
         "access-control-allow-methods",
         allowedMethods,
       );
+    }
+    if (allowPreflight === true && ctx.request.method === "OPTIONS") {
+      ctx.response = new Response(null, {
+        status: 204,
+        headers: ctx.response.headers,
+      });
     }
     return ctx;
   };

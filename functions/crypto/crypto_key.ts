@@ -1,4 +1,4 @@
-import { base64 } from "../../deps.ts";
+import { base64 } from "../deps.ts";
 
 export type RsaAlgorithm = "RS256" | "RS384" | "RS512";
 export type HsAlgorithm = "HS256" | "HS384" | "HS512";
@@ -107,6 +107,13 @@ export async function fetchRsaCryptoKey(
   keyUrl: string | URL,
   alg: RsaAlgorithm,
 ): Promise<CryptoKey> {
-  const pem = await fetch(keyUrl).then((res) => res.text());
-  return await importRsaKeyFromPem(pem, alg, "public");
+  const response = await fetch(keyUrl);
+  if (response.ok) {
+    const pem = await fetch(keyUrl).then((res) => res.text());
+    return await importRsaKeyFromPem(pem, alg, "public");
+  } else {
+    throw new Error(
+      `Received status code ${response.status} (${response.statusText}) instead of 200-299 range`,
+    );
+  }
 }

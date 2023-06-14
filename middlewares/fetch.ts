@@ -1,13 +1,13 @@
 import {
-  Context,
+  type Context,
   createHttpError,
   join,
   mergeUrl,
   Status,
-  UrlProperties,
-} from "../deps.ts";
+  type UrlProperties,
+} from "./deps.ts";
 import { getSubdomainPath } from "./subdomain.ts";
-import { copyResponse } from "../util/mod.ts";
+import { copyResponse } from "../functions/response.ts";
 
 type Options = {
   hasSubdomainDirectory?: boolean;
