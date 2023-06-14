@@ -24,3 +24,8 @@ deno doc https://deno.land/x/portal/mod.ts
 - Add `WebSocket` support when
   [WebSocketStream](https://deno.land/manual/runtime/http_server_apis#websocket-support)
   arrives.
+
+## Decoding
+
+Decoding for querystrings might be necessary if they were encoded on the client
+side for special characters.

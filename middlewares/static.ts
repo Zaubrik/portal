@@ -1,7 +1,6 @@
 import {
   type Context,
   createHttpError,
-  decodeUriComponentSafely,
   isErrorStatus,
   isHttpError,
   join,
@@ -10,6 +9,7 @@ import {
 } from "./deps.ts";
 import { getSubdomainPath } from "./subdomain.ts";
 import { getPathnameFs } from "../functions/path.ts";
+import { decodeUriComponentSafely } from "../functions/url.ts";
 
 type ServeStaticFileOptions = {
   home?: string;

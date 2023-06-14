@@ -1,9 +1,5 @@
-import {
-  type Context,
-  createHttpError,
-  decodeUriComponentSafely,
-  Status,
-} from "./deps.ts";
+import { type Context, createHttpError, Status } from "./deps.ts";
+import { decodeUriComponentSafely } from "../functions/url.ts";
 
 /**
  * Removes the subdomain `www.` and redirects with status `301`.
