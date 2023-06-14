@@ -7,4 +7,3 @@ export * from "./log.ts";
 export * from "./smtp.ts";
 export * from "./static.ts";
 export * from "./subdomain.ts";
-export * from "./rpc.ts";
