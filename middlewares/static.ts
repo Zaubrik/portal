@@ -26,7 +26,7 @@ type ServeStaticFileOptions = {
  * ```ts
  * app.get(
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
- *   serveStatic(new URL("./static", import.meta.url), {
+ *   serveStatic(./static), {
  *     hasSubdomainDirectory: true,
  *     fsRoot: "./static",
  *     urlRoot: "first",
@@ -41,7 +41,7 @@ export function serveStatic(fsRoot: string | URL, {
   urlRoot = "",
   enableCors = false,
 }: ServeStaticFileOptions = {}) {
-  const pathRoot = getPathnameFs(fsRoot);
+  const pathRoot = getPathnameFs(new URL(fsRoot, Deno.mainModule));
   const urlRootToBeRemoved = join("/", urlRoot);
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {

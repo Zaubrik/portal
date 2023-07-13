@@ -11,6 +11,7 @@ import {
   SMTPClient,
   Status,
 } from "./deps.ts";
+import { getGroup } from "../functions/mod.ts";
 
 type Options = { isTest?: boolean };
 type SendConfigCb = (
@@ -70,7 +71,7 @@ export function send(
   }
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
-      const { id } = getPathnameParams(ctx);
+      const id = getGroup(ctx.result, "pathname", "id");
       const bodyMessage = await ctx.request.text();
       const sendConfig = sendConfigOrCb
         ? isFunction(sendConfigOrCb)
@@ -79,7 +80,7 @@ export function send(
         : JSON.parse(bodyMessage);
       if (isSendConfig(sendConfig)) {
         try {
-          await sendEmail(clientOptions, [sendConfig]);
+          await sendEmail(clientOptions, sendConfig);
           ctx.response = new Response();
           return ctx;
         } catch (error) {
@@ -99,37 +100,29 @@ export function send(
   };
 }
 
-function getPathnameParams(ctx: Context): { id: string } {
-  const { id } = ctx.params.pathname.groups;
-  if (!id) {
-    throw createHttpError(
-      Status.InternalServerError,
-      "Invalid pathname params.",
-    );
-  }
-  return { id };
-}
-
 async function* makeGenerator(sendConfigs: SendConfig[], client: SMTPClient) {
-  const i = sendConfigs.findIndex((config) =>
-    !isSingleMail(config.to as string)
-  );
-  if (i >= 0) {
-    throw new Error(`The sendconfig with the index ${i} has an invalid email.`);
-  }
   for (const config of sendConfigs) {
     yield await client.send(config); // Returns `undefined`
-    console.log("sendConfig:", config);
   }
 }
 
 export async function sendEmail(
   clientOptions: ClientOptions,
-  sendConfigs: SendConfig[],
+  sendConfig: SendConfig | SendConfig[],
 ) {
+  const sendConfigs = Array.isArray(sendConfig) ? sendConfig : [sendConfig];
   const client = new SMTPClient(clientOptions);
   const results = [];
   try {
+    const i = sendConfigs.findIndex((config) =>
+      !isSingleMail(config.to as string)
+    );
+    if (i >= 0) {
+      throw createHttpError(
+        Status.BadRequest,
+        `The sendconfig with the index ${i} has an invalid email.`,
+      );
+    }
     for await (const result of makeGenerator(sendConfigs, client)) {
       results.push(result);
     }
@@ -141,9 +134,14 @@ export async function sendEmail(
     } catch {
       (() => {});
     }
-    throw error;
+    throw isHttpError(error)
+      ? error
+      : createHttpError(Status.InternalServerError, error.message);
   }
 }
+
+export { type ClientOptions };
+export { type SendConfig };
 
 // https://github.com/EC-Nordbund/denomailer/blob/main/config/mail/mod.ts
 // deno-lint-ignore no-explicit-any
