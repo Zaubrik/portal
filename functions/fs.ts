@@ -10,3 +10,12 @@ export async function getDirEntries(
   }
   return dirEntries;
 }
+
+async function getFilepathsIn(pathOrUrl: string | URL): Promise<string[]> {
+  const directory = getPathnameFs(pathOrUrl);
+  const filepaths = [];
+  for await (const dirEntry of Deno.readDir(directory)) {
+    if (dirEntry.isFile) filepaths.push(resolve(directory, dirEntry.name));
+  }
+  return filepaths;
+}
