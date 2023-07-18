@@ -57,4 +57,4 @@ export {
   fetchRsaCryptoKey,
   type RsaAlgorithm,
   verifyHmacSha,
-} from "https://dev.zaubrik.com/certainty@v0.0.1/mod.ts";
+} from "https://dev.zaubrik.com/certainty@v0.0.3/mod.ts";
