@@ -4,5 +4,5 @@
 export {
   fromFileUrl,
   isAbsolute,
-} from "https://deno.land/std@0.192.0/path/mod.ts";
-export { ensureFile } from "https://deno.land/std@0.192.0/fs/mod.ts";
+} from "https://deno.land/std@0.194.0/path/mod.ts";
+export { ensureFile } from "https://deno.land/std@0.194.0/fs/mod.ts";

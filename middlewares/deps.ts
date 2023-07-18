@@ -38,12 +38,12 @@ export {
 export {
   mergeUrl,
   type UrlProperties,
-} from "https://dev.zaubrik.com/sorcery@v0.1.1/path.js";
-export { equals } from "https://dev.zaubrik.com/sorcery@v0.1.1/booleans/equality.js";
+} from "https://dev.zaubrik.com/sorcery@v0.1.3/path.js";
+export { equals } from "https://dev.zaubrik.com/sorcery@v0.1.3/booleans/equality.js";
 export {
   hasNotProperty,
   hasProperty,
-} from "https://dev.zaubrik.com/sorcery@v0.1.1/objects/membership.js";
+} from "https://dev.zaubrik.com/sorcery@v0.1.3/objects/membership.js";
 export {
   isError,
   isFunction,
@@ -52,7 +52,7 @@ export {
   isPresent,
   isString,
   isUrl,
-} from "https://dev.zaubrik.com/sorcery@v0.1.1/type.js";
+} from "https://dev.zaubrik.com/sorcery@v0.1.3/type.js";
 export {
   fetchRsaCryptoKey,
   type RsaAlgorithm,
