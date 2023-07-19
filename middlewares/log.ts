@@ -66,7 +66,6 @@ function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
 }
 
 async function createMessage<C extends Context>(ctx: C) {
-  console.log("ctx.connInfo.remoteAddr", ctx.connInfo.remoteAddr);
   return {
     request: {
       hostname: ctx.connInfo.remoteAddr.hostname,
