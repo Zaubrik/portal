@@ -49,7 +49,7 @@ function getDefaultConfig(pathToLogFile: string | URL) {
 function logMessage<C extends Context>(
   ctx: C,
   logger: Logger,
-): Promise<void> {
+): void {
   try {
     logger.debug(createMessage(ctx));
   } catch (error) {
