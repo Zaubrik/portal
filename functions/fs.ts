@@ -1,3 +1,4 @@
+import { resolve } from "./deps.ts";
 import { getPathnameFs } from "./path.ts";
 
 export async function getDirEntries(

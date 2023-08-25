@@ -34,7 +34,7 @@ type ServeStaticFileOptions = {
  * );
  * ```
  */
-export function serveStatic(fsRoot: string | URL, {
+export function serveStatic(fsRoot: string | URL = "./static", {
   home = "index.html",
   hasSubdomainDirectory = false,
   appendTrailingSlash = true,

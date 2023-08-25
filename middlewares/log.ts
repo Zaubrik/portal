@@ -94,7 +94,7 @@ function createMessage<C extends Context>(ctx: C) {
  * ```
  */
 export function logger(
-  configOrUrlToLogFile: LogConfig | string | URL,
+  configOrUrlToLogFile: LogConfig | string | URL = "./.log/access.log",
   kind: "console" | "file" | "all" = "all",
 ) {
   /**await*/ log.setup(getConfig(configOrUrlToLogFile));

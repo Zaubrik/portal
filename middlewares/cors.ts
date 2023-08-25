@@ -62,3 +62,14 @@ export function enableCors(
     return ctx;
   };
 }
+
+export const enableDefaultCors = enableCors({
+  allowedOrigins: "*",
+  allowedMethods: "*",
+  allowedHeaders: "Authorization, Content-Type",
+});
+
+export function return200<C extends Context>(ctx: C): C {
+  ctx.response = new Response();
+  return ctx;
+}
