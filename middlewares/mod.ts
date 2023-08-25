@@ -22,7 +22,7 @@ export const defaultLogger = logger("./.log/access.log");
 export const defaultServeStatic = serveStatic("./static");
 export const defaultCors = enableCors({
   allowedOrigins: "*",
-  allowedMethods: "POST",
+  allowedMethods: "*",
   allowedHeaders: "Authorization, Content-Type",
 });
 export function returnOk<C extends Context>(ctx: C): C {

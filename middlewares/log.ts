@@ -46,12 +46,12 @@ function getDefaultConfig(pathToLogFile: string | URL) {
   };
 }
 
-async function logMessage<C extends Context>(
+function logMessage<C extends Context>(
   ctx: C,
   logger: Logger,
 ): Promise<void> {
   try {
-    logger.debug(await createMessage(ctx));
+    logger.debug(createMessage(ctx));
   } catch (error) {
     console.error(`Unexpected logger error: ${assertError(error).message}`);
   }
@@ -65,7 +65,7 @@ function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   }
 }
 
-async function createMessage<C extends Context>(ctx: C) {
+function createMessage<C extends Context>(ctx: C) {
   return {
     request: {
       hostname: ctx.connInfo.remoteAddr.hostname,
@@ -77,7 +77,7 @@ async function createMessage<C extends Context>(ctx: C) {
       },
     },
     status: ctx.response.status,
-    length: (await ctx.response.clone().arrayBuffer()).byteLength,
+    length: ctx.response.headers.get("Content-Length"),
     responseHeaders: {
       xResponseTime: `${Date.now() - ctx.startTime}ms`,
       contentType: ctx.response.headers.get("Content-Type"),
@@ -103,4 +103,9 @@ export function logger(
     logMessage(ctx, logger);
     return ctx;
   };
+}
+
+export function logError<C extends Context>(ctx: C): C {
+  console.log(ctx.error);
+  return ctx;
 }

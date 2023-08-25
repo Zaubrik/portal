@@ -68,7 +68,7 @@ export function getGroup(
   const param = groups[group];
   if (param === undefined) {
     throw new Error(
-      `The defined UrlPattern in ${urlPart} does not contain the parameter ${group}.`,
+      `The matching group in ${urlPart} for ${group} is 'undefined'.`,
     );
   }
   return param;
