@@ -1,5 +1,6 @@
 import { ensureFile } from "./deps.ts";
 import { decode } from "./util.ts";
+import { getPathnameFs } from "./path.ts";
 
 type CommandOptions = ConstructorParameters<typeof Deno.Command>[1];
 
@@ -37,8 +38,9 @@ export async function spawnSubprocess(
     } else {
       const err = decode(stderr);
       if (options?.debug) {
-        await ensureFile(options.debug);
-        await Deno.writeTextFile(options.debug, `${JSON.stringify([err])},`, {
+        const path = getPathnameFs(new URL(options.debug, Deno.mainModule));
+        await ensureFile(path);
+        await Deno.writeTextFile(path, `${JSON.stringify([err])},`, {
           append: true,
         });
       }
