@@ -7,10 +7,10 @@ import {
   type VerifyOptions,
 } from "./deps.ts";
 import {
-  create as createJwt,
+  createJwt,
   type CryptoKeyOrUpdateInput,
   getJwtFromBearer,
-  verify as verifyJwt,
+  verifyJwt,
 } from "../functions/jwt.ts";
 
 export type PayloadState = { payload: Payload };

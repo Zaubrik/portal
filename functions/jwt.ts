@@ -1,5 +1,5 @@
 import {
-  create as createOriginal,
+  create,
   decodeJwt,
   isObject,
   isString,
@@ -7,7 +7,7 @@ import {
   isUrl,
   type Payload,
   semver,
-  verify as verifyOriginal,
+  verify as verify,
   type VerifyOptions,
 } from "./deps.ts";
 import {
@@ -58,7 +58,7 @@ export function getJwtFromBearer(headers: Headers): string {
   }
 }
 
-export async function create(
+export async function createJwt(
   payload: Payload,
   input: CryptoKeyOrUpdateInput,
 ): Promise<string> {
@@ -80,7 +80,7 @@ export async function create(
   } else {
     if (isCryptoKey(input.cryptoKey)) {
       const header = { alg: input.algorithm, typ: "JWT" };
-      const jwt = await createOriginal(header, payload, input.cryptoKey);
+      const jwt = await create(header, payload, input.cryptoKey);
       return jwt;
     } else {
       throw new Error("The 'key' property of the input is not an CryptoKey.");
@@ -88,7 +88,7 @@ export async function create(
   }
 }
 
-export async function verify(
+export async function verifyJwt(
   input: CryptoKeyOrUpdateInput,
   options?: VerifyOptions,
 ) {
@@ -99,12 +99,12 @@ export async function verify(
       const [header] = decodeJwt(jwt);
       if (isOutdated(input as Required<UpdateInput>, header)) {
         cryptoKey = await getCryptoKey(input);
-        const payload = await verifyOriginal(jwt, cryptoKey, options);
+        const payload = await verify(jwt, cryptoKey, options);
         input.keySemVer = (header as { ver: string }).ver;
         return payload;
       }
     }
-    return await verifyOriginal(jwt, cryptoKey, options);
+    return await verify(jwt, cryptoKey, options);
   };
 }
 
