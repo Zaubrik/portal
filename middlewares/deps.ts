@@ -14,7 +14,6 @@ export type {
   LogConfig,
   Logger,
 } from "https://deno.land/std@0.200.0/log/mod.ts";
-export * as semver from "https://deno.land/std@0.200.0/semver/mod.ts";
 
 /**
  * mixed
@@ -49,6 +48,7 @@ export { equals } from "https://dev.zaubrik.com/sorcery@v0.1.4/booleans/equality
 export {
   hasNotProperty,
   hasProperty,
+  hasPropertyOf,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/objects/membership.js";
 export {
   isError,
@@ -57,10 +57,6 @@ export {
   isObject,
   isPresent,
   isString,
+  isUndefined,
   isUrl,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/type.js";
-export {
-  fetchRsaCryptoKey,
-  type RsaAlgorithm,
-  verifyHmacSha,
-} from "https://dev.zaubrik.com/certainty@v0.0.3/mod.ts";

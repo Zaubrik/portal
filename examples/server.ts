@@ -1,14 +1,9 @@
 import {
-  type Context,
+  Context,
   createGetRoute,
   createHandler,
 } from "https://dev.zaubrik.com/composium@v0.1.1/mod.ts";
-import {
-  Ctx,
-  defaultCors,
-  defaultLogger,
-  fallBack,
-} from "../middlewares/mod.ts";
+import { enableDefaultCors, fallBack, logger } from "../middlewares/mod.ts";
 
 function welcome<C extends Context>(ctx: C) {
   const name = ctx.result.pathname.groups.name || "nobody";
@@ -16,11 +11,11 @@ function welcome<C extends Context>(ctx: C) {
   return ctx;
 }
 
-const tryMiddleware = createGetRoute({ pathname: "/{:name}?" })(welcome);
+const welcomeRoute = createGetRoute({ pathname: "/{:name}?" })(welcome);
 
-const handler = createHandler(Ctx)(tryMiddleware)(fallBack)(
-  defaultLogger,
-  defaultCors,
+const handler = createHandler(Context)(welcomeRoute)(fallBack)(
+  logger(),
+  enableDefaultCors,
 );
 
 Deno.serve({ port: 8080 }, handler);

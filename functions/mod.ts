@@ -1,3 +1,4 @@
+export * from "./crypto/mod.ts";
 export * from "./assertion.ts";
 export * from "./env.ts";
 export * from "./fs.ts";

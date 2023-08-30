@@ -10,21 +10,24 @@ import {
 } from "../test_deps.ts";
 import { HttpError } from "./deps.ts";
 
+const algorithm = "HS512" as const;
 const cryptoKey = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-512" },
   true,
   ["sign", "verify"],
 );
 const header: Header = {
-  alg: "HS512",
+  alg: algorithm,
   typ: "JWT",
 };
 const payload = { iss: "Joe" };
 const jwt = await create(header, payload, cryptoKey);
 const getLoginRoute = createRoute("GET")({ pathname: "/login" });
 
-Deno.test("verify VerifyJwtInput", async function () {
-  const returnedCtx = await getLoginRoute(await verify(cryptoKey))(
+Deno.test("verify CryptoKeyInput", async function () {
+  const returnedCtx = await getLoginRoute(
+    await verify({ cryptoKey, algorithm }),
+  )(
     new Context<PayloadState>(
       new Request("https://example.com/login", {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -39,7 +42,7 @@ Deno.test("verify VerifyJwtInput", async function () {
   );
 });
 
-Deno.test("verify invalid VerifyJwtInput", async function () {
+Deno.test("verify invalid CryptoKeyInput", async function () {
   const ctx = new Context<PayloadState>(
     new Request("https://example.com/login", {
       headers: { Authorization: `Bearer ${jwt}INVALID` },
@@ -49,7 +52,7 @@ Deno.test("verify invalid VerifyJwtInput", async function () {
   );
   await assertRejects(
     async () => {
-      await getLoginRoute(await verify(cryptoKey))(ctx);
+      await getLoginRoute(await verify({ cryptoKey, algorithm }))(ctx);
     },
     HttpError,
     "The serialization of the jwt is invalid.",
