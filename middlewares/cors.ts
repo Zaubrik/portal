@@ -10,8 +10,9 @@ type Options = { enableSubdomains?: boolean; allowPreflight?: true };
 /**
  * Takes an object of `AllowedItems` and `Options` and returns a middleware
  * which enables CORS by adding appropriate headers to the `Response`. If
- * `allowedOrigins` is left empty then any origin is allowed.
- * The option `enableSubdomains` extends cors to all subdomains.
+ * `allowedOrigins` is left empty then any origin is allowed.  The option
+ * `enableSubdomains` extends cors to all subdomains. You can take care of
+ * preflight requests with the option `allowPreflight`.
  */
 export function enableCors(
   { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
@@ -68,8 +69,3 @@ export const enableDefaultCors = enableCors({
   allowedMethods: "*",
   allowedHeaders: "Authorization, Content-Type",
 });
-
-export function return200<C extends Context>(ctx: C): C {
-  ctx.response = new Response();
-  return ctx;
-}
