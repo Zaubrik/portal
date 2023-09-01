@@ -1,7 +1,11 @@
 /**
  * std
  */
-export { fromFileUrl, join } from "https://deno.land/std@0.200.0/path/mod.ts";
+export {
+  fromFileUrl,
+  isAbsolute,
+  join,
+} from "https://deno.land/std@0.200.0/path/mod.ts";
 export {
   ensureFile,
   ensureFileSync,

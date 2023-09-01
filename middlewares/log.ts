@@ -2,6 +2,7 @@ import {
   assertError,
   type Context,
   ensureFileSync,
+  isAbsolute,
   isPresent,
   isString,
   isUrl,
@@ -12,11 +13,7 @@ import {
 } from "./deps.ts";
 import { getMainModule, getPathnameFs } from "../functions/path.ts";
 
-function getDefaultConfig(pathToLogFile: string | URL) {
-  const pathname = isString(pathToLogFile) && pathToLogFile.startsWith("./")
-    ? getMainModule(pathToLogFile)
-    : getPathnameFs(pathToLogFile);
-  ensureFileSync(pathname);
+function getDefaultConfig(path: string) {
   return {
     handlers: {
       console: new log.handlers.ConsoleHandler("DEBUG", {
@@ -26,7 +23,7 @@ function getDefaultConfig(pathToLogFile: string | URL) {
       }),
 
       file: new log.handlers.FileHandler("DEBUG", {
-        filename: pathname,
+        filename: path,
         formatter: (logRecord) => {
           return logRecord.msg;
         },
@@ -62,11 +59,13 @@ function logMessage<C extends Context>(
 
 function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    return getDefaultConfig(
-      isString(configOrUrlToLogFile)
-        ? join("./.log/", configOrUrlToLogFile)
-        : configOrUrlToLogFile,
-    );
+    const pathname =
+      isUrl(configOrUrlToLogFile) || isAbsolute(configOrUrlToLogFile)
+        ? getPathnameFs(configOrUrlToLogFile)
+        : getMainModule("./" + join(".log/", configOrUrlToLogFile));
+    const defaultConfig = getDefaultConfig(pathname);
+    ensureFileSync(pathname);
+    return defaultConfig;
   } else {
     return configOrUrlToLogFile;
   }
