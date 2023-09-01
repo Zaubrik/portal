@@ -3,12 +3,13 @@ import {
   createHttpError,
   isErrorStatus,
   isHttpError,
+  isString,
   join,
   serveFile,
   Status,
 } from "./deps.ts";
 import { getSubdomainPath } from "./subdomain.ts";
-import { getPathnameFs } from "../functions/path.ts";
+import { getMainModule, getPathnameFs } from "../functions/path.ts";
 import { decodeUriComponentSafely } from "../functions/url.ts";
 
 type ServeStaticFileOptions = {
@@ -16,7 +17,6 @@ type ServeStaticFileOptions = {
   appendTrailingSlash?: boolean;
   hasSubdomainDirectory?: boolean;
   urlRoot?: string;
-  enableCors?: boolean;
 };
 
 /**
@@ -39,9 +39,10 @@ export function serveStatic(fsRoot: string | URL = "./static", {
   hasSubdomainDirectory = false,
   appendTrailingSlash = true,
   urlRoot = "",
-  enableCors = false,
 }: ServeStaticFileOptions = {}) {
-  const pathRoot = getPathnameFs(new URL(fsRoot, Deno.mainModule));
+  const pathRoot = isString(fsRoot) && fsRoot.startsWith("./")
+    ? getMainModule(fsRoot)
+    : getPathnameFs(fsRoot);
   const urlRootToBeRemoved = join("/", urlRoot);
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
@@ -75,23 +76,10 @@ export function serveStatic(fsRoot: string | URL = "./static", {
         });
       }
       ctx.response = response;
-      if (enableCors) {
-        ctx.response.headers.set("access-control-allow-origin", "*");
-      }
       return ctx;
     } catch (error) {
       throw isHttpError(error)
-        ? enableCors
-          ? createHttpError(error.status, error.message, {
-            expose: false,
-            headers: new Headers({ "access-control-allow-origin": "*" }),
-          })
-          : error
-        : enableCors
-        ? createHttpError(Status.NotFound, error.message, {
-          expose: false,
-          headers: new Headers({ "access-control-allow-origin": "*" }),
-        })
+        ? error
         : createHttpError(Status.NotFound, error.message, { expose: false });
     }
   };

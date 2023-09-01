@@ -1,6 +1,14 @@
 import { assertEquals, assertNotEquals, assertThrows } from "../test_deps.ts";
-import { fromFileUrl } from "./deps.ts";
-import { securePath } from "./path.ts";
+import { fromFileUrl, join } from "./deps.ts";
+import { getMainModule, securePath } from "./path.ts";
+
+Deno.test("getMainModule", function (): void {
+  const relativePath = "./static/script.ts";
+  assertEquals(
+    getMainModule(relativePath),
+    join(fromFileUrl(Deno.mainModule), "." + relativePath),
+  );
+});
 
 Deno.test("securePath", function (): void {
   const rootUrl = new URL("../static/", new URL(import.meta.url));

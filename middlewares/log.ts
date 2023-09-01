@@ -10,10 +10,12 @@ import {
   type LogConfig,
   type Logger,
 } from "./deps.ts";
-import { getPathnameFs } from "../functions/path.ts";
+import { getMainModule, getPathnameFs } from "../functions/path.ts";
 
 function getDefaultConfig(pathToLogFile: string | URL) {
-  const pathname = getPathnameFs(new URL(pathToLogFile, Deno.mainModule));
+  const pathname = isString(pathToLogFile) && pathToLogFile.startsWith("./")
+    ? getMainModule(pathToLogFile)
+    : getPathnameFs(pathToLogFile);
   ensureFileSync(pathname);
   return {
     handlers: {
