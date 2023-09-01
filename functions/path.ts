@@ -5,7 +5,7 @@ import { decodeUriComponentSafely } from "./url.ts";
  * importMetaResolveFs.
  * @param {string} moduleUrl
  * @return {(path: string) => string}
- * ```js
+ * ```ts
  * importMetaResolveFs(import.meta.url)("./static/")
  * ```
  */
@@ -18,7 +18,7 @@ export function importMetaResolveFs(moduleUrl: string) {
 
 /**
  * Takes a `string` or `URL` and returns a pathname.
- * ```js
+ * ```ts
  * getPathnameFs(new URL("file:///home/foo")); // "/home/foo"
  * getPathnameFs(new URL("file:///home/fo%o儒")); // /home/fo%o儒
  * getPathnameFs(new URL("http://example.com/books/123")) // /books/123
@@ -41,6 +41,18 @@ export function getPathnameFs(urlOrPath: URL | string): string {
   return urlOrPath.protocol === "file:"
     ? fromFileUrl(urlOrPath)
     : decodeUriComponentSafely(urlOrPath.pathname);
+}
+
+/**
+ * Takes a `string` a pathname to the main module.
+ * ```ts
+ * getMainModule("./home/foo");
+ * ```
+ * @param {string} relativePath
+ * @return {string}
+ */
+export function getMainModule(relativePath: string): string {
+  return getPathnameFs(new URL(relativePath, Deno.mainModule));
 }
 
 /**
