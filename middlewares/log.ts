@@ -5,6 +5,7 @@ import {
   isPresent,
   isString,
   isUrl,
+  join,
   log,
   type LogConfig,
   type Logger,
@@ -59,7 +60,11 @@ function logMessage<C extends Context>(
 
 function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
   if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    return getDefaultConfig(configOrUrlToLogFile);
+    return getDefaultConfig(
+      isString(configOrUrlToLogFile)
+        ? join("./.log/", configOrUrlToLogFile)
+        : configOrUrlToLogFile,
+    );
   } else {
     return configOrUrlToLogFile;
   }
@@ -94,7 +99,7 @@ function createMessage<C extends Context>(ctx: C) {
  * ```
  */
 export function logger(
-  configOrUrlToLogFile: LogConfig | string | URL = "./.log/access.log",
+  configOrUrlToLogFile: LogConfig | string | URL = "access.log",
   kind: "console" | "file" | "all" = "all",
 ) {
   /**await*/ log.setup(getConfig(configOrUrlToLogFile));

@@ -77,14 +77,12 @@ export async function createJwt(
     } else {
       throw new Error("The algorithms don't match.");
     }
+  } else if (isCryptoKey(input.cryptoKey)) {
+    const header = { alg: input.algorithm, typ: "JWT" };
+    const jwt = await create(header, payload, input.cryptoKey);
+    return jwt;
   } else {
-    if (isCryptoKey(input.cryptoKey)) {
-      const header = { alg: input.algorithm, typ: "JWT" };
-      const jwt = await create(header, payload, input.cryptoKey);
-      return jwt;
-    } else {
-      throw new Error("The 'key' property of the input is not an CryptoKey.");
-    }
+    throw new Error("The 'key' property of the input is not an CryptoKey.");
   }
 }
 
@@ -102,9 +100,14 @@ export async function verifyJwt(
         const payload = await verify(jwt, cryptoKey, options);
         input.keySemVer = (header as { ver: string }).ver;
         return payload;
+      } else {
+        return await verify(jwt, cryptoKey, options);
       }
+    } else if (isCryptoKey(input.cryptoKey)) {
+      return await verify(jwt, cryptoKey, options);
+    } else {
+      throw new Error("The 'key' property of the input is not an CryptoKey.");
     }
-    return await verify(jwt, cryptoKey, options);
   };
 }
 
