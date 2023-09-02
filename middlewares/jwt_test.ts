@@ -26,7 +26,7 @@ const getLoginRoute = createRoute("GET")({ pathname: "/login" });
 
 Deno.test("verify CryptoKeyInput", async function () {
   const returnedCtx = await getLoginRoute(
-    await verify({ cryptoKey, algorithm }),
+    await verify(cryptoKey),
   )(
     new Context<PayloadState>(
       new Request("https://example.com/login", {
@@ -52,7 +52,7 @@ Deno.test("verify invalid CryptoKeyInput", async function () {
   );
   await assertRejects(
     async () => {
-      await getLoginRoute(await verify({ cryptoKey, algorithm }))(ctx);
+      await getLoginRoute(await verify(cryptoKey))(ctx);
     },
     HttpError,
     "The serialization of the jwt is invalid.",

@@ -17,17 +17,13 @@ import {
   type RsaAlgorithm,
 } from "./crypto/crypto_key.ts";
 
-export type CryptoKeyInput = {
-  cryptoKey: CryptoKey;
-  algorithm: RsaAlgorithm | HsAlgorithm;
-};
 export type UpdateInput = {
   url: string | URL;
   algorithm: RsaAlgorithm;
   keySemVer?: string;
 };
 export type CryptoKeyOrUpdateInput =
-  | CryptoKeyInput
+  | CryptoKey
   | UpdateInput;
 
 const defaultKeySemver = "v0.0.0";
@@ -43,7 +39,7 @@ async function getCryptoKey(input: CryptoKeyOrUpdateInput): Promise<CryptoKey> {
   if (isUpdateInput(input)) {
     return await fetchRsaCryptoKey(input.url, input.algorithm);
   } else {
-    return input.cryptoKey;
+    return input;
   }
 }
 
@@ -77,21 +73,19 @@ export async function createJwt(
     } else {
       throw new Error("The algorithms don't match.");
     }
-  } else if (isCryptoKey(input.cryptoKey)) {
-    const header = { alg: input.algorithm, typ: "JWT" };
-    const jwt = await create(header, payload, input.cryptoKey);
+  } else if (isCryptoKey(input)) {
+    const alg = getAlg(input);
+    const header = { alg, typ: "JWT" };
+    const jwt = await create(header, payload, input);
     return jwt;
   } else {
-    throw new Error("The 'key' property of the input is not an CryptoKey.");
+    throw new Error("Invalid input.");
   }
 }
 
-export async function verifyJwt(
-  input: CryptoKeyOrUpdateInput,
-  options?: VerifyOptions,
-) {
+export async function verifyJwt(input: CryptoKeyOrUpdateInput) {
   let cryptoKey = await getCryptoKey(input);
-  return async (jwt: string): Promise<Payload> => {
+  return async (jwt: string, options?: VerifyOptions): Promise<Payload> => {
     if (isUpdateInput(input)) {
       input.keySemVer ??= defaultKeySemver;
       const [header] = decodeJwt(jwt);
@@ -103,10 +97,10 @@ export async function verifyJwt(
       } else {
         return await verify(jwt, cryptoKey, options);
       }
-    } else if (isCryptoKey(input.cryptoKey)) {
+    } else if (isCryptoKey(cryptoKey)) {
       return await verify(jwt, cryptoKey, options);
     } else {
-      throw new Error("The 'key' property of the input is not an CryptoKey.");
+      throw new Error("Invalid input.");
     }
   };
 }
@@ -139,4 +133,36 @@ export function isOutdated(
   } else {
     throw new Error("The jwt has an invalid 'Header'.");
   }
+}
+
+export function getAlg(cryptoKey: CryptoKey): RsaAlgorithm | HsAlgorithm {
+  const keyAlgorithm = cryptoKey.algorithm;
+  if (isHashedKeyAlgorithm(keyAlgorithm)) {
+    const { hash, name } = keyAlgorithm;
+    if (name === "HMAC") {
+      if (hash.name === "SHA-256") {
+        return "HS256";
+      } else if (hash.name === "SHA-384") {
+        return "HS384";
+      } else if (hash.name === "SHA-512") {
+        return "HS512";
+      }
+    } else if (name === "RSASSA-PKCS1-v1_5") {
+      if (hash.name === "SHA-256") {
+        return "RS256";
+      } else if (hash.name === "SHA-384") {
+        return "RS384";
+      } else if (hash.name === "SHA-512") {
+        return "RS512";
+      }
+    }
+  }
+  throw new Error(`The CryptoKey '${cryptoKey.algorithm}' is not supported.`);
+}
+
+function isHashedKeyAlgorithm(
+  // deno-lint-ignore no-explicit-any
+  algorithm: Record<string, any>,
+): algorithm is HmacKeyAlgorithm | RsaHashedKeyAlgorithm {
+  return isString(algorithm.hash?.name);
 }
