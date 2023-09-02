@@ -35,14 +35,6 @@ function isUpdateInput(input: any): input is UpdateInput {
     (isUndefined(input.keySemVer) || !!semver.valid(input.keySemVer as string));
 }
 
-async function getCryptoKey(input: CryptoKeyOrUpdateInput): Promise<CryptoKey> {
-  if (isUpdateInput(input)) {
-    return await fetchRsaCryptoKey(input.url, input.algorithm);
-  } else {
-    return input;
-  }
-}
-
 export function getJwtFromBearer(headers: Headers): string {
   const authHeader = headers.get("Authorization");
   if (authHeader === null) {
@@ -83,22 +75,26 @@ export async function createJwt(
   }
 }
 
-export async function verifyJwt(input: CryptoKeyOrUpdateInput) {
-  let cryptoKey = await getCryptoKey(input);
+export function verifyJwt(input: CryptoKeyOrUpdateInput) {
+  const cryptoKeyPromiseOrNull = isUpdateInput(input)
+    ? fetchRsaCryptoKey(input.url, input.algorithm)
+    : null;
   return async (jwt: string, options?: VerifyOptions): Promise<Payload> => {
-    if (isUpdateInput(input)) {
+    const cryptoKeyOrNull = await cryptoKeyPromiseOrNull;
+    if (isUpdateInput(input) && isCryptoKey(cryptoKeyOrNull)) {
+      let cryptoKey = cryptoKeyOrNull;
       input.keySemVer ??= defaultKeySemver;
       const [header] = decodeJwt(jwt);
       if (isOutdated(input as Required<UpdateInput>, header)) {
-        cryptoKey = await getCryptoKey(input);
+        cryptoKey = await fetchRsaCryptoKey(input.url, input.algorithm);
         const payload = await verify(jwt, cryptoKey, options);
         input.keySemVer = (header as { ver: string }).ver;
         return payload;
       } else {
         return await verify(jwt, cryptoKey, options);
       }
-    } else if (isCryptoKey(cryptoKey)) {
-      return await verify(jwt, cryptoKey, options);
+    } else if (isCryptoKey(input)) {
+      return await verify(jwt, input, options);
     } else {
       throw new Error("Invalid input.");
     }

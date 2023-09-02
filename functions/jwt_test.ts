@@ -13,7 +13,7 @@ const { privateKey, publicKey } = await window.crypto.subtle.generateKey(
 );
 
 const payload = { iss: "zaubrik" };
-const verify = await verifyJwt(publicKey);
+const verify = verifyJwt(publicKey);
 
 Deno.test("Create and verify a jwt", async function (): Promise<void> {
   const jwt = await createJwt(payload, privateKey);

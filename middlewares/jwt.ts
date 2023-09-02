@@ -15,11 +15,11 @@ import {
 
 export type PayloadState = { payload: Payload };
 
-export async function verify(
+export function verify(
   input: CryptoKeyOrUpdateInput,
   options?: VerifyOptions,
 ) {
-  const verifyJwtCurried = await verifyJwt(input);
+  const verifyJwtCurried = verifyJwt(input);
   return async <C extends Context<PayloadState>>(ctx: C): Promise<C> => {
     try {
       const jwt = getJwtFromBearer(ctx.request.headers);
