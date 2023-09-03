@@ -8,12 +8,15 @@ import {
   semver,
   Status,
 } from "./deps.ts";
-import { type JsonValue } from "../functions/json.ts";
+import { type JsonObject } from "../functions/json.ts";
 import { getDirectoriesFromRepo, pullOrClone } from "../functions/git.ts";
 import { type WebhooksState } from "./webhook.ts";
 
 type PayloadForCreateEvent = {
-  repository: { name: string; owner: Record<string, JsonValue> };
+  repository: {
+    name: string;
+    owner: Record<string, JsonObject> & { login: string };
+  };
   ref_type: "tag" | "branch";
   ref: string;
 };
@@ -29,7 +32,7 @@ export function validatePayloadForCreateEvent(
   const { repository, ref, ref_type } = webhookPayload;
   if (
     isObject(repository) && isString(repository.name) &&
-    isObject(repository.owner)
+    isObject(repository.owner) && isString(repository.owner.login)
   ) {
     if (ref_type === "tag") {
       if (isString(ref) && semver.valid(ref)) {
@@ -47,7 +50,7 @@ export function validatePayloadForCreateEvent(
       throw new Error("Invalid webhook event.");
     }
   } else {
-    throw new Error("Invalid repository name.");
+    throw new Error("Invalid webhook payload.");
   }
 }
 
@@ -58,8 +61,8 @@ export function validatePayloadForCreateEvent(
  */
 export function pullOrCloneRepo(
   containerPath: string,
-  repoOwner: string,
-  repositories: string[],
+  repoOwner: string | string[],
+  repositories?: string[],
 ) {
   ensureDirAndSymlink(containerPath);
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
@@ -70,10 +73,10 @@ export function pullOrCloneRepo(
           webhookPayload,
         );
         const { owner } = repository;
-        if (owner?.login !== repoOwner) {
+        if (![repoOwner].flat().includes(owner?.login)) {
           throw new Error("The repository has the wrong owner.");
         }
-        if (!repositories.includes(repository.name)) {
+        if (repositories && !repositories.includes(repository.name)) {
           throw new Error("The repository is not in the list of repositories.");
         }
         await pullOrClone(containerPath, { repository, ref: "" });

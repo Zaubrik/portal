@@ -1,6 +1,7 @@
 import { join } from "./deps.ts";
 import { getPathnameFs } from "./path.ts";
 import { spawnSubprocess } from "./subprocess.ts";
+import { type JsonObject } from "./json.ts";
 
 export async function pull(path: string | URL) {
   return await spawnSubprocess("git", {
@@ -28,7 +29,10 @@ export async function clone(
 export async function pullOrClone(
   parentDirectory: string,
   { repository, ref }: {
-    repository: { name: string; owner: Record<string, unknown> };
+    repository: {
+      name: string;
+      owner: Record<string, JsonObject> & { login: string };
+    };
     ref: string;
   },
 ) {
