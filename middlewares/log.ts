@@ -11,7 +11,7 @@ import {
   type LogConfig,
   type Logger,
 } from "./deps.ts";
-import { getMainModule, getPathnameFs } from "../functions/path.ts";
+import { getPathnameFs, resolveMainModule } from "../functions/path.ts";
 
 function getDefaultConfig(path: string) {
   return {
@@ -62,7 +62,7 @@ function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
     const pathname =
       isUrl(configOrUrlToLogFile) || isAbsolute(configOrUrlToLogFile)
         ? getPathnameFs(configOrUrlToLogFile)
-        : getMainModule("./" + join(".log/", configOrUrlToLogFile));
+        : resolveMainModule("./" + join(".log/", configOrUrlToLogFile));
     const defaultConfig = getDefaultConfig(pathname);
     ensureFileSync(pathname);
     return defaultConfig;

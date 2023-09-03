@@ -6,7 +6,7 @@ export type WebhooksState = { webhookPayload: JsonObject };
 type HsAlgorithm = Parameters<typeof verifyHmacSha>[1];
 
 // https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
-const suffix = "shaXXX=";
+const defaultSuffix = "shaXXX=";
 
 /**
  * A curried middleware which takes a secret, algorithm and a header name. It
@@ -18,12 +18,13 @@ export function verifyWebhook(
   webhooksSecret: string,
   algorithm: HsAlgorithm,
   signatureHeader: string,
+  { suffixLength = defaultSuffix.length }: { suffixLength?: number } = {},
 ) {
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
       const signatureHeaderOrNull = ctx.request.headers.get(signatureHeader);
       if (signatureHeaderOrNull) {
-        const signature = signatureHeaderOrNull.slice(suffix.length);
+        const signature = signatureHeaderOrNull.slice(suffixLength ?? 0);
         if (signature) {
           const payload = await ctx.request.json();
           const isVerified = await verifyHmacSha(

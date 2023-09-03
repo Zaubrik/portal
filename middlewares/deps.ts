@@ -2,15 +2,18 @@
  * std
  */
 export {
+  basename,
   fromFileUrl,
   isAbsolute,
   join,
+  normalize,
 } from "https://deno.land/std@0.200.0/path/mod.ts";
 export {
   ensureFile,
   ensureFileSync,
 } from "https://deno.land/std@0.200.0/fs/mod.ts";
 export * from "https://deno.land/std@0.200.0/http/http_errors.ts";
+export * as semver from "https://deno.land/std@0.200.0/semver/mod.ts";
 export * from "https://deno.land/std@0.200.0/http/http_status.ts";
 export { serveFile } from "https://deno.land/std@0.200.0/http/file_server.ts";
 export * as log from "https://deno.land/std@0.200.0/log/mod.ts";

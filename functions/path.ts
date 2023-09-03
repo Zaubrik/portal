@@ -46,12 +46,12 @@ export function getPathnameFs(urlOrPath: URL | string): string {
 /**
  * Takes a `string` a pathname to the main module.
  * ```ts
- * getMainModule("./home/foo");
+ * resolveMainModule("./home/foo");
  * ```
  * @param {string} relativePath
  * @return {string}
  */
-export function getMainModule(relativePath: string): string {
+export function resolveMainModule(relativePath: string): string {
   return getPathnameFs(new URL(relativePath, Deno.mainModule));
 }
 

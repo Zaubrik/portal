@@ -9,7 +9,7 @@ import {
   Status,
 } from "./deps.ts";
 import { getSubdomainPath } from "./subdomain.ts";
-import { getMainModule, getPathnameFs } from "../functions/path.ts";
+import { getPathnameFs, resolveMainModule } from "../functions/path.ts";
 import { decodeUriComponentSafely } from "../functions/url.ts";
 
 type ServeStaticFileOptions = {
@@ -28,7 +28,6 @@ type ServeStaticFileOptions = {
  *   { protocol: "http{s}?", hostname: "{:subdomain.}*localhost" },
  *   serveStatic(./static), {
  *     hasSubdomainDirectory: true,
- *     fsRoot: "./static",
  *     urlRoot: "first",
  *   }),
  * );
@@ -41,7 +40,7 @@ export function serveStatic(fsRoot: string | URL = "./static", {
   urlRoot = "",
 }: ServeStaticFileOptions = {}) {
   const pathRoot = isString(fsRoot) && fsRoot.startsWith("./")
-    ? getMainModule(fsRoot)
+    ? resolveMainModule(fsRoot)
     : getPathnameFs(fsRoot);
   const urlRootToBeRemoved = join("/", urlRoot);
   return async <C extends Context>(ctx: C): Promise<C> => {
