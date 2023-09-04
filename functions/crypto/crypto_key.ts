@@ -113,7 +113,7 @@ export async function fetchRsaCryptoKey(
 ): Promise<CryptoKey> {
   const response = await fetch(keyUrl);
   if (response.ok) {
-    const pem = await fetch(keyUrl).then((res) => res.text());
+    const pem = await response.text();
     return await importRsaKeyFromPem(pem, algorithm, "public");
   } else {
     throw new Error(
