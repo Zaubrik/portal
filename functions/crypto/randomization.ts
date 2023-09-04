@@ -1,9 +1,11 @@
 /**
- * generateId.
+ * generateId
+ * Produces a random 8-character hexadecimal string.
  * @returns {string}
  */
 export function generateId() {
-  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+  const hexString = crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+  return hexString.padStart(8, "0").slice(0, 8);
 }
 
 /**
