@@ -101,17 +101,16 @@ function createMessage<C extends Context>(ctx: C) {
  */
 export function logger(
   configOrUrlToLogFile: LogConfig | string | URL = "access.log",
-  kind: "console" | "file" | "all" = "all",
+  { kind = "all", debug = false }: {
+    kind?: "console" | "file" | "all";
+    debug?: boolean;
+  } = {},
 ) {
-  /**await*/ log.setup(getConfig(configOrUrlToLogFile));
+  log.setup(getConfig(configOrUrlToLogFile));
   const logger = log.getLogger(kind);
   return <C extends Context>(ctx: C): C => {
     logMessage(ctx, logger);
+    if (debug) console.log(ctx.error);
     return ctx;
   };
-}
-
-export function logError<C extends Context>(ctx: C): C {
-  console.log(ctx.error);
-  return ctx;
 }
