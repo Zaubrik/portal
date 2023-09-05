@@ -4,7 +4,7 @@
  * @param {number} [length=10]
  * @returns {string}
  */
-export function generateId(length = 10) {
+export function generateId(length = 12) {
   const minHexChars = 2; // Minimum number of characters required for a valid hex digit
   const maxBytes = 65536; // Maximum number of random bytes available
   const maxHexChars = maxBytes * 2; // Each byte corresponds to 2 hex characters
