@@ -110,7 +110,7 @@ export function logger(
   const logger = log.getLogger(kind);
   return <C extends Context>(ctx: C): C => {
     logMessage(ctx, logger);
-    if (debug) console.log(ctx.error);
+    if (debug && isPresent(ctx.error)) console.log(ctx.error);
     return ctx;
   };
 }
