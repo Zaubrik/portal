@@ -28,12 +28,13 @@ export async function clone(
 
 export async function pullOrClone(
   parentDirectory: string,
-  { repository, ref }: {
+  { repository, ref, token }: {
     repository: {
       name: string;
       owner: Record<string, JsonObject> & { login: string };
     };
     ref: string;
+    token?: string;
   },
 ) {
   const { name, owner } = repository;
@@ -43,7 +44,7 @@ export async function pullOrClone(
   } catch {
     await clone(
       parentDirectory,
-      `https://github.com/${owner.login}/${name}`,
+      `https://${token ? `${token}@` : ""}github.com/${owner.login}/${name}`,
       destination,
     );
   }

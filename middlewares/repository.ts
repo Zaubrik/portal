@@ -62,7 +62,7 @@ export function validatePayloadForCreateEvent(
 export function pullOrCloneRepo(
   containerPath: string,
   repoOwner: string | string[],
-  repositories?: string[],
+  { repositories, token }: { repositories?: string[]; token?: string },
 ) {
   ensureDirAndSymlink(containerPath);
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
@@ -79,9 +79,9 @@ export function pullOrCloneRepo(
         if (repositories && !repositories.includes(repository.name)) {
           throw new Error("The repository is not in the list of repositories.");
         }
-        await pullOrClone(containerPath, { repository, ref: "" });
+        await pullOrClone(containerPath, { repository, ref: "", token });
         if (ref_type === "tag" && ref) {
-          await pullOrClone(containerPath, { repository, ref });
+          await pullOrClone(containerPath, { repository, ref, token });
         }
       }
       ctx.response = new Response();
