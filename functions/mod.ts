@@ -8,6 +8,7 @@ export * from "./jwt.ts";
 export * from "./path.ts";
 export * from "./response.ts";
 export * from "./subprocess.ts";
+export * from "./umami.ts";
 export * from "./url.ts";
 export * from "./url_pattern.ts";
 export * from "./util.ts";

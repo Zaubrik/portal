@@ -3,7 +3,7 @@ import {
   createGetRoute,
   createHandler,
 } from "https://dev.zaubrik.com/composium@v0.1.1/mod.ts";
-import { enableDefaultCors, fallBack, logger } from "../middlewares/mod.ts";
+import { fallBack, logger } from "../middlewares/mod.ts";
 
 function welcome<C extends Context>(ctx: C) {
   const name = ctx.result.pathname.groups.name || "nobody";
@@ -13,9 +13,6 @@ function welcome<C extends Context>(ctx: C) {
 
 const welcomeRoute = createGetRoute({ pathname: "/{:name}?" })(welcome);
 
-const handler = createHandler(Context)(welcomeRoute)(fallBack)(
-  logger(),
-  enableDefaultCors,
-);
+const handler = createHandler(Context)(welcomeRoute)(fallBack)(logger());
 
 Deno.serve({ port: 8080 }, handler);

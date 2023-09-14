@@ -51,7 +51,10 @@ export {
   mergeUrl,
   type UrlProperties,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/path.js";
-export { equals } from "https://dev.zaubrik.com/sorcery@v0.1.4/booleans/equality.js";
+export {
+  equals,
+  isFalse,
+} from "https://dev.zaubrik.com/sorcery@v0.1.4/booleans/equality.js";
 export {
   hasNotProperty,
   hasProperty,

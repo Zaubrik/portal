@@ -16,7 +16,9 @@ export function isPresent<T>(input: T | undefined | null): input is T {
 export function assertEnv(env: string[]): string[] {
   const result = env.map((v) => Deno.env.get(v)).filter(isPresent);
   if (result.length !== env.length) {
-    throw new Error("Not all environment variables are defined.");
+    throw new Error(
+      `Not all environment variables are defined for: ${env.join(", ")}.`,
+    );
   } else {
     return result;
   }

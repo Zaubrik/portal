@@ -7,4 +7,5 @@ export * from "./repository.ts";
 export * from "./smtp.ts";
 export * from "./static.ts";
 export * from "./subdomain.ts";
+export * from "./umami.ts";
 export * from "./webhook.ts";
