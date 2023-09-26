@@ -3,6 +3,26 @@ import { getPathnameFs } from "./path.ts";
 import { spawnSubprocess } from "./subprocess.ts";
 import { type JsonObject } from "./json.ts";
 
+export async function push(path: string | URL, option?: string) {
+  return await spawnSubprocess("git", {
+    args: option
+      ? ["-C", getPathnameFs(path), "push", option]
+      : ["-C", getPathnameFs(path), "push"],
+  });
+}
+
+export async function add(path: string | URL) {
+  return await spawnSubprocess("git", {
+    args: ["-C", getPathnameFs(path), "add", "."],
+  });
+}
+
+export async function commit(path: string | URL, message = "-") {
+  return await spawnSubprocess("git", {
+    args: ["-C", getPathnameFs(path), "commit", "-m", message],
+  });
+}
+
 export async function pull(path: string | URL) {
   return await spawnSubprocess("git", {
     args: ["-C", getPathnameFs(path), "pull"],

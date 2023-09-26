@@ -1,4 +1,4 @@
-import { fromFileUrl, isAbsolute } from "./deps.ts";
+import { extname, fromFileUrl, isAbsolute } from "./deps.ts";
 import { decodeUriComponentSafely } from "./url.ts";
 
 /**
@@ -93,5 +93,12 @@ export function securePath(rootDirectory: URL | string) {
     }
 
     return path;
+  };
+}
+
+export function hasExtension(extension: string) {
+  return (pathOrUrl: string | URL): boolean => {
+    const filepath = getPathnameFs(pathOrUrl);
+    return extname(filepath) === extension;
   };
 }

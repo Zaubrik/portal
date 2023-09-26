@@ -2,6 +2,7 @@
  * std
  */
 export {
+  extname,
   fromFileUrl,
   isAbsolute,
   join,
@@ -32,4 +33,3 @@ export {
   isUndefined,
   isUrl,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/type.js";
-export { fetchFor } from "https://dev.zaubrik.com/sorcery@v0.1.4/fetch.js";
