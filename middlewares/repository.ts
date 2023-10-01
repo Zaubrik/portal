@@ -62,7 +62,7 @@ export function validatePayloadForCreateEvent(
 export function pullOrCloneRepo(
   containerPath: string,
   repoOwner: string | string[],
-  { repositories, token }: { repositories?: string[]; token?: string },
+  { repositories, token }: { repositories?: string[]; token?: string } = {},
 ) {
   ensureDirAndSymlink(containerPath);
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
