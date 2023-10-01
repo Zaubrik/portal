@@ -46,6 +46,8 @@ export { isSingleMail } from "https://deno.land/x/denomailer@1.6.0/config/mail/e
 export {
   assertError,
   Context,
+  createHandler,
+  type Middleware,
 } from "https://dev.zaubrik.com/composium@v0.1.1/mod.ts";
 export {
   mergeUrl,
