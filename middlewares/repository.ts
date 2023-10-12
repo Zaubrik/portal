@@ -12,7 +12,7 @@ import { type JsonObject } from "../functions/json.ts";
 import { getDirectoriesFromRepo, pullOrClone } from "../functions/git.ts";
 import { type WebhooksState } from "./webhook.ts";
 
-type PayloadForCreateEvent = {
+export type PayloadForCreateEvent = {
   repository: {
     name: string;
     owner: Record<string, JsonObject> & { login: string };
@@ -148,6 +148,8 @@ function ensureDirAndSymlink(containerPath: string) {
         `Creating a symlink from ${parentContainer} to ${containerPath}.`,
       );
     } catch {
+      // It needs the `--unstable` flag at the moment:
+      // Deno.umask(0);
       Deno.mkdirSync(parentContainer, { recursive: true });
       Deno.symlinkSync(parentContainer, containerPath);
       console.log(

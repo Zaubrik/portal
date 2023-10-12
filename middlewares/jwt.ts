@@ -15,21 +15,27 @@ import {
 
 export type PayloadState = { payload: Payload };
 
+export function curriedVerify(input: CryptoKeyOrUpdateInput) {
+  const verifyJwtCurried = verifyJwt(input);
+  return (options: VerifyOptions = {}) => {
+    return async <C extends Context<PayloadState>>(ctx: C): Promise<C> => {
+      try {
+        const jwt = getJwtFromBearer(ctx.request.headers);
+        const payload = await verifyJwtCurried(jwt, options);
+        ctx.state.payload = payload;
+        return ctx;
+      } catch (error) {
+        throw isHttpError(error) ? error : createUnauthorizedError(error);
+      }
+    };
+  };
+}
+
 export function verify(
   input: CryptoKeyOrUpdateInput,
   options?: VerifyOptions,
 ) {
-  const verifyJwtCurried = verifyJwt(input);
-  return async <C extends Context<PayloadState>>(ctx: C): Promise<C> => {
-    try {
-      const jwt = getJwtFromBearer(ctx.request.headers);
-      const payload = await verifyJwtCurried(jwt, options);
-      ctx.state.payload = payload;
-      return ctx;
-    } catch (error) {
-      throw isHttpError(error) ? error : createUnauthorizedError(error);
-    }
-  };
+  return curriedVerify(input)(options);
 }
 
 export function create(
