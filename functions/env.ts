@@ -24,5 +24,5 @@ export function assertEnv(env: string[]): string[] {
   }
 }
 
-const [str] = assertEnv(["isProduction"]);
-export const isProduction = JSON.parse(str);
+const [isProductionEnv] = assertEnv(["IS_PRODUCTION"]);
+export const isProduction = JSON.parse(isProductionEnv);
