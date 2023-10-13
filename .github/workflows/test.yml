@@ -22,7 +22,6 @@ jobs:
 
       - name: Setup Deno
         run: |
-          echo "{IS_PRODUCTION}={false}" >> $GITHUB_ENV
           curl -fsSL https://deno.land/x/install/install.sh | sh ${{ matrix.deno == 'old' && '-s v1.36.3' || '' }}
           echo "$HOME/.deno/bin" >> $${{ runner.os == 'Windows' && 'env:' || '' }}GITHUB_PATH
       - name: Upgrade to Deno canary
@@ -38,4 +37,6 @@ jobs:
         run: deno lint
 
       - name: Run Tests
-        run: deno test --unstable --check -A 
+        run: |
+          echo "{IS_PRODUCTION}={false}" >> $GITHUB_ENV
+          deno test --unstable --check -A 
