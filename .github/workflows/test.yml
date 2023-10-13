@@ -38,5 +38,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "{IS_PRODUCTION}={false}" >> $GITHUB_ENV
+          echo "IS_PRODUCTION=false" >> $GITHUB_ENV
+          export IS_PRODUCTION=false
           deno test --unstable --check -A 
