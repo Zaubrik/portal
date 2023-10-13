@@ -23,3 +23,6 @@ export function assertEnv(env: string[]): string[] {
     return result;
   }
 }
+
+const [str] = assertEnv(["isProduction"]);
+export const isProduction = JSON.parse(str);
