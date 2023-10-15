@@ -35,8 +35,12 @@ export function validatePayloadForCreateEvent(
     isObject(repository.owner) && isString(repository.owner.login)
   ) {
     if (ref_type === "tag") {
-      if (isString(ref) && semver.valid(ref)) {
-        return { repository, ref, ref_type } as PayloadForCreateEvent;
+      if (isString(ref) && semver.isSemVer(ref)) {
+        return {
+          repository,
+          ref,
+          ref_type,
+        } as unknown as PayloadForCreateEvent;
       } else {
         throw new Error("Invalid webhook tag.");
       }

@@ -32,7 +32,8 @@ const defaultKeySemver = "v0.0.0";
 function isUpdateInput(input: any): input is UpdateInput {
   return isObject(input) && isString(input.algorithm) &&
     (isString(input.url) || isUrl(input.url)) &&
-    (isUndefined(input.keySemVer) || !!semver.valid(input.keySemVer as string));
+    (isUndefined(input.keySemVer) ||
+      !!semver.isSemVer(input.keySemVer as string));
 }
 
 export function getJwtFromBearer(headers: Headers): string {
@@ -107,16 +108,19 @@ export function isOutdated(
 ): boolean {
   if (isObject(header)) {
     const { ver, alg } = header;
-    if (isString(ver) && semver.valid(ver)) {
+    if (isString(ver) && semver.isSemVer(ver)) {
       if (alg === input.algorithm) {
-        if (semver.eq(ver, input.keySemVer)) {
-          return false;
-        } else if (semver.gt(ver, input.keySemVer)) {
-          return true;
+        const keySemVer = input.keySemVer;
+        if (semver.isSemVer(keySemVer)) {
+          if (semver.eq(ver, keySemVer)) {
+            return false;
+          } else if (semver.gt(ver, keySemVer)) {
+            return true;
+          } else {
+            throw new Error("The jwt's version is outdated.");
+          }
         } else {
-          throw new Error(
-            "The jwt's version is outdated.",
-          );
+          throw new Error("Invalid keySemVer.");
         }
       } else {
         throw new Error(
