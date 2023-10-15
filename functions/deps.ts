@@ -7,14 +7,14 @@ export {
   isAbsolute,
   join,
   resolve,
-} from "https://deno.land/std@0.200.0/path/mod.ts";
-export { ensureFile } from "https://deno.land/std@0.200.0/fs/mod.ts";
+} from "https://deno.land/std@0.204.0/path/mod.ts";
+export { ensureFile } from "https://deno.land/std@0.204.0/fs/mod.ts";
 export {
   decode as decodeFromHex,
   encode as encodeToHex,
-} from "https://deno.land/std@0.200.0/encoding/hex.ts";
-export * as base64 from "https://deno.land/std@0.200.0/encoding/base64.ts";
-export * as semver from "https://deno.land/std@0.200.0/semver/mod.ts";
+} from "https://deno.land/std@0.204.0/encoding/hex.ts";
+export * as base64 from "https://deno.land/std@0.204.0/encoding/base64.ts";
+export * as semver from "https://deno.land/std@0.204.0/semver/mod.ts";
 
 /**
  * Zaubrik
