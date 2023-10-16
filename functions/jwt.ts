@@ -30,10 +30,14 @@ const defaultKeySemver = "v0.0.0";
 
 // deno-lint-ignore no-explicit-any
 function isUpdateInput(input: any): input is UpdateInput {
-  return isObject(input) && isString(input.algorithm) &&
-    (isString(input.url) || isUrl(input.url)) &&
-    (isUndefined(input.keySemVer) ||
-      !!semver.isSemVer(input.keySemVer as string));
+  try {
+    return isObject(input) && isString(input.algorithm) &&
+      (isString(input.url) || isUrl(input.url)) &&
+      (isUndefined(input.keySemVer) ||
+        !!semver.parse(input.keySemVer as string));
+  } catch {
+    return false;
+  }
 }
 
 export function getJwtFromBearer(headers: Headers): string {
@@ -110,17 +114,13 @@ export function isOutdated(
     const { ver, alg } = header;
     if (isString(ver) && semver.isSemVer(ver)) {
       if (alg === input.algorithm) {
-        const keySemVer = input.keySemVer;
-        if (semver.isSemVer(keySemVer)) {
-          if (semver.eq(ver, keySemVer)) {
-            return false;
-          } else if (semver.gt(ver, keySemVer)) {
-            return true;
-          } else {
-            throw new Error("The jwt's version is outdated.");
-          }
+        const keySemVer = semver.parse(input.keySemVer);
+        if (semver.eq(ver, keySemVer)) {
+          return false;
+        } else if (semver.gt(ver, keySemVer)) {
+          return true;
         } else {
-          throw new Error("Invalid keySemVer.");
+          throw new Error("The jwt's version is outdated.");
         }
       } else {
         throw new Error(

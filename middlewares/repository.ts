@@ -35,7 +35,7 @@ export function validatePayloadForCreateEvent(
     isObject(repository.owner) && isString(repository.owner.login)
   ) {
     if (ref_type === "tag") {
-      if (isString(ref) && semver.isSemVer(ref)) {
+      if (isString(ref) && semver.parse(ref)) {
         return {
           repository,
           ref,
