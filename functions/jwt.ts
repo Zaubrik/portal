@@ -112,12 +112,13 @@ export function isOutdated(
 ): boolean {
   if (isObject(header)) {
     const { ver, alg } = header;
-    if (isString(ver) && semver.isSemVer(ver)) {
+    const verSemver = semver.parse(ver as string);
+    if (semver.parse(verSemver)) {
       if (alg === input.algorithm) {
         const keySemVer = semver.parse(input.keySemVer);
-        if (semver.eq(ver, keySemVer)) {
+        if (semver.eq(verSemver, keySemVer)) {
           return false;
-        } else if (semver.gt(ver, keySemVer)) {
+        } else if (semver.gt(verSemver, keySemVer)) {
           return true;
         } else {
           throw new Error("The jwt's version is outdated.");
