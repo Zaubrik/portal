@@ -59,9 +59,24 @@ export async function pullOrClone(
 ) {
   const { name, owner } = repository;
   const destination = `${name}${ref ? `@${ref}` : ""}`;
+  const repoPath = join(parentDirectory, destination);
   try {
-    await pull(join(parentDirectory, destination));
+    try {
+      await pull(repoPath);
+    } catch {
+      await clone(
+        parentDirectory,
+        `https://${token ? `${token}@` : ""}github.com/${owner.login}/${name}`,
+        destination,
+      );
+    }
   } catch {
+    await spawnSubprocess(
+      "rm",
+      {
+        args: ["-rf", join(repoPath, ".git")],
+      },
+    );
     await clone(
       parentDirectory,
       `https://${token ? `${token}@` : ""}github.com/${owner.login}/${name}`,
