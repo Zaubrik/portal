@@ -36,7 +36,7 @@ export async function spawnSubprocess(
     if (code === 0) {
       return decode(stdout);
     } else {
-      const err = decode(stderr);
+      const err = decode(stderr) ? decode(stderr) : decode(stdout);
       if (options?.debug) {
         const path = getPathnameFs(new URL(options.debug, Deno.mainModule));
         await ensureFile(path);

@@ -17,10 +17,26 @@ export async function add(path: string | URL) {
   });
 }
 
+function checkGitCommitMessage(message: string) {
+  const substring = "nothing to commit, working tree clean";
+
+  if (!message.includes(substring)) {
+    throw new Error(
+      "Git commit message does not contain the expected substring.",
+    );
+  } else {
+    return message;
+  }
+}
+
 export async function commit(path: string | URL, message = "-") {
-  return await spawnSubprocess("git", {
-    args: ["-C", getPathnameFs(path), "commit", "-m", message],
-  });
+  try {
+    return await spawnSubprocess("git", {
+      args: ["-C", getPathnameFs(path), "commit", "-m", message],
+    });
+  } catch (err) {
+    return checkGitCommitMessage(err.message);
+  }
 }
 
 export async function pull(path: string | URL) {
