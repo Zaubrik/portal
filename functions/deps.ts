@@ -26,7 +26,7 @@ export {
   type Payload,
   verify,
   type VerifyOptions,
-} from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+} from "https://deno.land/x/djwt@v3.0.0/mod.ts";
 export {
   isObject,
   isString,
