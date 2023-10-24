@@ -17,25 +17,19 @@ export async function add(path: string | URL) {
   });
 }
 
-function checkGitCommitMessage(message: string) {
-  const substring = "nothing to commit, working tree clean";
-
-  if (!message.includes(substring)) {
-    throw new Error(
-      "Git commit message does not contain the expected substring.",
-    );
-  } else {
-    return message;
-  }
-}
-
 export async function commit(path: string | URL, message = "-") {
   try {
     return await spawnSubprocess("git", {
       args: ["-C", getPathnameFs(path), "commit", "-m", message],
     });
-  } catch (err) {
-    return checkGitCommitMessage(err.message);
+  } catch (error) {
+    const substring = "nothing to commit, working tree clean";
+    if (!error.message.includes(substring)) {
+      throw error;
+    } else {
+      console.log(error.message);
+      return error.message;
+    }
   }
 }
 
