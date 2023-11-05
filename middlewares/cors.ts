@@ -43,13 +43,13 @@ export function enableCors(
       }
     }
     if (isString(allowedHeaders)) {
-      ctx.response.headers.append(
+      ctx.response.headers.set(
         "access-control-allow-headers",
         allowedHeaders,
       );
     }
     if (isString(allowedMethods)) {
-      ctx.response.headers.append(
+      ctx.response.headers.set(
         "access-control-allow-methods",
         allowedMethods,
       );
