@@ -84,7 +84,7 @@ export async function pullOrClone(
     await spawnSubprocess(
       "rm",
       {
-        args: ["-rf", join(repoPath, ".git")],
+        args: ["-rf", repoPath],
       },
     );
     await clone(

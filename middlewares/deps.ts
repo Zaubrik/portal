@@ -32,7 +32,7 @@ export {
   type Payload,
   verify,
   type VerifyOptions,
-} from "https://deno.land/x/djwt@v3.0.0/mod.ts";
+} from "https://deno.land/x/djwt@v3.0.1/mod.ts";
 export {
   type ClientOptions,
   type SendConfig,

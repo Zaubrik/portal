@@ -17,7 +17,7 @@ export {
   type Header,
   type Payload,
   verify,
-} from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+} from "https://deno.land/x/djwt@v3.0.1/mod.ts";
 export { identity } from "https://dev.zaubrik.com/sorcery@v0.1.4/higher_order.js";
 export {
   isNull,

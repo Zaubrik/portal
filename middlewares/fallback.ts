@@ -28,7 +28,7 @@ export function fallBack<C extends Context>(ctx: C): C {
     return ctx;
   } else {
     throw Error(
-      "This should never happen because the error property of ctx inside 'fallback' must not be falsy.",
+      "This error should never happen because the error property of ctx inside 'fallBack' must not be falsy.",
     );
   }
 }
