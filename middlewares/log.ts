@@ -63,6 +63,7 @@ function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
       isUrl(configOrUrlToLogFile) || isAbsolute(configOrUrlToLogFile)
         ? getPathnameFs(configOrUrlToLogFile)
         : resolveMainModule("./" + join(".log/", configOrUrlToLogFile));
+    console.log("pathname:", pathname);
     const defaultConfig = getDefaultConfig(pathname);
     ensureFileSync(pathname);
     return defaultConfig;
