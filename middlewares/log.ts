@@ -1,83 +1,14 @@
-import {
-  assertError,
-  type Context,
-  ensureFileSync,
-  isAbsolute,
-  isPresent,
-  isString,
-  isUrl,
-  join,
-  log,
-  type LogConfig,
-  type Logger,
-} from "./deps.ts";
+import { type Context, isAbsolute, isPresent, isUrl, join } from "./deps.ts";
 import { getPathnameFs, resolveMainModule } from "../functions/path.ts";
 
-function getDefaultConfig(path: string) {
-  return {
-    handlers: {
-      console: new log.handlers.ConsoleHandler("DEBUG", {
-        formatter: (logRecord) => {
-          return logRecord.msg;
-        },
-      }),
-
-      file: new log.handlers.FileHandler("DEBUG", {
-        filename: path,
-        formatter: (logRecord) => {
-          return logRecord.msg;
-        },
-      }),
-    },
-    loggers: {
-      console: {
-        level: "DEBUG" as const,
-        handlers: ["console"],
-      },
-      file: {
-        level: "DEBUG" as const,
-        handlers: ["file"],
-      },
-      all: {
-        level: "DEBUG" as const,
-        handlers: ["console", "file"],
-      },
-    },
-  };
-}
-
-function logMessage<C extends Context>(
-  ctx: C,
-  logger: Logger,
-): void {
-  try {
-    logger.debug(createMessage(ctx));
-  } catch (error) {
-    console.error(`Unexpected logger error: ${assertError(error).message}`);
-  }
-}
-
-function getConfig(configOrUrlToLogFile: LogConfig | string | URL) {
-  if (isString(configOrUrlToLogFile) || isUrl(configOrUrlToLogFile)) {
-    const pathname =
-      isUrl(configOrUrlToLogFile) || isAbsolute(configOrUrlToLogFile)
-        ? getPathnameFs(configOrUrlToLogFile)
-        : resolveMainModule("./" + join(".log/", configOrUrlToLogFile));
-    console.log("pathname:", pathname);
-    const defaultConfig = getDefaultConfig(pathname);
-    ensureFileSync(pathname);
-    return defaultConfig;
-  } else {
-    return configOrUrlToLogFile;
-  }
-}
-
-function createMessage<C extends Context>(ctx: C) {
+function createLog<C extends Context>(ctx: C) {
   return {
     request: {
-      hostname: ctx.connInfo.remoteAddr.hostname,
+      hostname: ctx.request.headers.get("X-Real-IP") ||
+        ctx.connInfo.remoteAddr.hostname,
       method: ctx.request.method,
       url: ctx.request.url,
+      date: new Date().toISOString(),
       headers: {
         userAgent: ctx.request.headers.get("User-Agent"),
         referer: ctx.request.headers.get("Referer"),
@@ -89,11 +20,48 @@ function createMessage<C extends Context>(ctx: C) {
       xResponseTime: `${Date.now() - ctx.startTime}ms`,
       contentType: ctx.response.headers.get("Content-Type"),
     },
-    message: isPresent(ctx.error) ? ctx.error.message : null,
+    error: isPresent(ctx.error) ? ctx.error.message : null,
     user: isPresent(ctx.state.payload?.sub) ? ctx.state.payload.sub : null,
   };
 }
 
+export function queue(f: any) {
+  async function* makeGenerator(): any {
+    let passedValue: any;
+    let result: any;
+    let i = 0;
+    while (true) {
+      passedValue = yield result as any;
+      result = await f(passedValue, i) as any;
+      i++;
+    }
+  }
+  const generator = makeGenerator();
+  generator.next();
+  return generator;
+}
+
+function logWithOptions(path: string, options: LoggerOptions) {
+  return async <C extends Context>(ctx: C) => {
+    const message = JSON.stringify(createLog(ctx));
+    if (options.print) {
+      console.log(message);
+    }
+    if (options.file) {
+      await Deno.writeTextFile(path, message + "\n", { append: true });
+    }
+    if (options.debug && isPresent(ctx.error)) {
+      console.error(ctx.error);
+    }
+    return message;
+  };
+}
+
+type LoggerOptions = {
+  print?: boolean;
+  file?: boolean;
+  debug?: boolean;
+};
 /**
  * Takes a `LogConfig` or path and logs data depending on the status and error.
  * ```ts
@@ -101,17 +69,16 @@ function createMessage<C extends Context>(ctx: C) {
  * ```
  */
 export function logger(
-  configOrUrlToLogFile: LogConfig | string | URL = "access.log",
-  { kind = "all", debug = false }: {
-    kind?: "console" | "file" | "all";
-    debug?: boolean;
-  } = {},
+  url: string | URL = "access.log",
+  { print = true, file = true, debug = false }: LoggerOptions = {},
 ) {
-  log.setup(getConfig(configOrUrlToLogFile));
-  const logger = log.getLogger(kind);
-  return <C extends Context>(ctx: C): C => {
-    logMessage(ctx, logger);
-    if (debug && isPresent(ctx.error)) console.log(ctx.error);
+  const path = isUrl(url) || isAbsolute(url)
+    ? getPathnameFs(url)
+    : resolveMainModule("./" + join(".log/", url));
+  const log = logWithOptions(path, { print, file, debug });
+  const generator = queue(log);
+  return async <C extends Context>(ctx: C): Promise<C> => {
+    await generator.next(ctx);
     return ctx;
   };
 }
