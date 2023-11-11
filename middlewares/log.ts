@@ -9,10 +9,7 @@ function createLog<C extends Context>(ctx: C) {
       method: ctx.request.method,
       url: ctx.request.url,
       date: new Date().toISOString(),
-      headers: {
-        userAgent: ctx.request.headers.get("User-Agent"),
-        referer: ctx.request.headers.get("Referer"),
-      },
+      referer: ctx.request.headers.get("Referer"),
     },
     status: ctx.response.status,
     length: ctx.response.headers.get("Content-Length"),
@@ -84,7 +81,7 @@ export function logger(
   const log = logWithOptions(path, { print, file, debug });
   const generator = queue(log);
   return async <C extends Context>(ctx: C): Promise<C> => {
-    await generator.next(ctx);
+    generator.next(ctx);
     return ctx;
   };
 }
