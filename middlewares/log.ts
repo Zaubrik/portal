@@ -25,13 +25,19 @@ function createLog<C extends Context>(ctx: C) {
   };
 }
 
+// deno-lint-ignore no-explicit-any
 export function queue(f: any) {
+  // deno-lint-ignore no-explicit-any
   async function* makeGenerator(): any {
+    // deno-lint-ignore no-explicit-any
     let passedValue: any;
+    // deno-lint-ignore no-explicit-any
     let result: any;
     let i = 0;
     while (true) {
+      // deno-lint-ignore no-explicit-any
       passedValue = yield result as any;
+      // deno-lint-ignore no-explicit-any
       result = await f(passedValue, i) as any;
       i++;
     }
