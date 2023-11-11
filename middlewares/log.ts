@@ -80,7 +80,7 @@ export function logger(
     : resolveMainModule("./" + join(".log/", url));
   const log = logWithOptions(path, { print, file, debug });
   const generator = queue(log);
-  return async <C extends Context>(ctx: C): Promise<C> => {
+  return <C extends Context>(ctx: C): C => {
     generator.next(ctx);
     return ctx;
   };
