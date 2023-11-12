@@ -45,7 +45,10 @@ export function queue(f: any) {
 }
 
 function logWithOptions(path: string, options: LoggerOptions) {
-  return async (logObject: Record<string, unknown>, error?: Error) => {
+  return async (
+    logObject: Record<string, unknown>,
+    error: Context["error"],
+  ) => {
     const message = JSON.stringify(logObject);
     if (options.print) {
       console.log(message);
