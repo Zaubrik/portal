@@ -45,16 +45,16 @@ export function queue(f: any) {
 }
 
 function logWithOptions(path: string, options: LoggerOptions) {
-  return async <C extends Context>(ctx: C) => {
-    const message = JSON.stringify(createLog(ctx));
+  return async (logObject: Record<string, unknown>, error?: Error) => {
+    const message = JSON.stringify(logObject);
     if (options.print) {
       console.log(message);
     }
     if (options.file) {
       await Deno.writeTextFile(path, message + "\n", { append: true });
     }
-    if (options.debug && isPresent(ctx.error)) {
-      console.error(ctx.error);
+    if (options.debug && isPresent(error)) {
+      console.error(error);
     }
     return message;
   };
@@ -81,9 +81,8 @@ export function logger(
   const log = logWithOptions(path, { print, file, debug });
   const generator = queue(log);
   return <C extends Context>(ctx: C): C => {
-    ctx.request = ctx.request.clone();
-    ctx.response = ctx.response.clone();
-    generator.next(ctx);
+    const logObject = createLog(ctx);
+    generator.next(logObject, ctx.error);
     return ctx;
   };
 }
