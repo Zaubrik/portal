@@ -81,6 +81,8 @@ export function logger(
   const log = logWithOptions(path, { print, file, debug });
   const generator = queue(log);
   return <C extends Context>(ctx: C): C => {
+    ctx.request = ctx.request.clone();
+    ctx.response = ctx.response.clone();
     generator.next(ctx);
     return ctx;
   };
