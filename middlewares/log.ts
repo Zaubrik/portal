@@ -45,10 +45,10 @@ export function queue(f: any) {
 }
 
 function logWithOptions(path: string, options: LoggerOptions) {
-  return async (
-    logObject: Record<string, unknown>,
-    error: Context["error"],
-  ) => {
+  return async ({ logObject, error }: {
+    logObject: Record<string, unknown>;
+    error: Context["error"];
+  }) => {
     const message = JSON.stringify(logObject);
     if (options.print) {
       console.log(message);
@@ -85,7 +85,7 @@ export function logger(
   const generator = queue(log);
   return <C extends Context>(ctx: C): C => {
     const logObject = createLog(ctx);
-    generator.next(logObject, ctx.error);
+    generator.next({ logObject, error: ctx.error });
     return ctx;
   };
 }
