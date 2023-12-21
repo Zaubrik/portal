@@ -3,8 +3,8 @@ export {
   assertNotEquals,
   assertRejects,
   assertThrows,
-} from "https://deno.land/std@0.204.0/testing/asserts.ts";
-export { delay } from "https://deno.land/std@0.204.0/async/delay.ts";
+} from "https://deno.land/std@0.209.0/testing/asserts.ts";
+export { delay } from "https://deno.land/std@0.209.0/async/delay.ts";
 export {
   compose,
   composeSync,

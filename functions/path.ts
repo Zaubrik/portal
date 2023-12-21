@@ -89,12 +89,14 @@ export function securePath(rootDirectory: URL | string) {
       const path = normalize(getPathnameFs(
         new URL(encodeURIComponent(userSuppliedFilename), rootDirectoryObj),
       ));
-      if (!path.startsWith(getPathnameFs(rootDirectoryObj))) {
+      if (path.startsWith(getPathnameFs(rootDirectoryObj))) {
+        return path;
+      } else {
         throw new Error("The path does not start with the root directory.");
       }
-    } else throw new Error("There are dangerous patterns inside the path.");
-
-    return path;
+    } else {
+      throw new Error("There are dangerous patterns inside the path.");
+    }
   };
 }
 
@@ -113,13 +115,13 @@ export function isSafePath(path: string): boolean {
   const decodedPath = decodeURIComponent(path);
   // Check if there is a 'poison null byte' in path.
   if (decodedPath.indexOf("\0") !== -1) {
-    return true;
+    return false;
   }
   // Regular expression to match path traversal patterns like '..', '/..', '\..', '%2e%2e', etc.
   const traversalPattern = /(\.\.\/)|(\.\.\\)|%2e%2e|\/\.\.|\.\.$/i;
 
   // Check if the decoded path matches the traversal pattern
-  return traversalPattern.test(decodedPath);
+  return !traversalPattern.test(decodedPath);
 }
 
 export function hasExtension(extension: string) {

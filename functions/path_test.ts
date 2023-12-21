@@ -22,6 +22,10 @@ Deno.test("securePath", function (): void {
     fromFileUrl(new URL("file:///" + "/static/bar/foo.md")),
   );
   assertEquals(
+    secureStatic("/foo.md"),
+    fromFileUrl(new URL("../static/foo.md", import.meta.url)),
+  );
+  assertEquals(
     secureStatic("./foo.md"),
     fromFileUrl(new URL("../static/foo.md", import.meta.url)),
   );
@@ -73,27 +77,20 @@ Deno.test("securePath with bad userSuppliedFilename", function (): void {
       secureStatic("./f\0oo.md");
     },
     Error,
-    "There is a 'poison null byte' in path.",
+    "There are dangerous patterns inside the path.",
   );
   assertThrows(
     (): void => {
       secureStatic("../foo.md");
     },
     Error,
-    "An unallowed path reversal is in path.",
+    "There are dangerous patterns inside the path.",
   );
   assertThrows(
     (): void => {
       secureStatic("./bar/../../foo.md");
     },
     Error,
-    "An unallowed path reversal is in path.",
-  );
-  assertThrows(
-    (): void => {
-      secureStatic("/foo.md");
-    },
-    Error,
-    "An unallowed path reversal is in path.",
+    "There are dangerous patterns inside the path.",
   );
 });
