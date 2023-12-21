@@ -6,6 +6,7 @@ export {
   fromFileUrl,
   isAbsolute,
   join,
+  normalize,
   resolve,
 } from "https://deno.land/std@0.204.0/path/mod.ts";
 export { ensureFile } from "https://deno.land/std@0.204.0/fs/mod.ts";

@@ -1,4 +1,4 @@
-import { extname, fromFileUrl, isAbsolute } from "./deps.ts";
+import { extname, fromFileUrl, isAbsolute, normalize } from "./deps.ts";
 import { decodeUriComponentSafely } from "./url.ts";
 
 /**
@@ -39,7 +39,7 @@ export function getPathnameFs(urlOrPath: URL | string): string {
     }
   }
   return urlOrPath.protocol === "file:"
-    ? fromFileUrl(urlOrPath)
+    ? decodeUriComponentSafely(fromFileUrl(urlOrPath))
     : decodeUriComponentSafely(urlOrPath.pathname);
 }
 
@@ -61,6 +61,9 @@ export function resolveMainModule(relativePath: string): string {
  * ```ts
  * const secureStatic = securePath(new URL("../static/", import.meta.url));
  * const path = secureStatic("./foo.md");
+ * const anotherPath = securePath("/aaa/bbb/")(
+ * "WEB-COMPONENTS:-ÜBER-DEN-EINZELNEN-BAUSTEIN-HINAUS"
+ * )
  * ```
  *
  * @param {string|URL} rootDirectory
@@ -82,18 +85,41 @@ export function securePath(rootDirectory: URL | string) {
     throw new TypeError("The path of 'rootDirectory' is not a directory.");
   }
   return (userSuppliedFilename: string): string => {
-    if (userSuppliedFilename.indexOf("\0") !== -1) {
-      throw new Error("There is a 'poison null byte' in path.");
-    }
-    const path = getPathnameFs(
-      new URL(userSuppliedFilename, rootDirectoryObj),
-    );
-    if (!path.startsWith(getPathnameFs(rootDirectoryObj))) {
-      throw new Error("An unallowed path reversal is in path.");
-    }
+    if (isSafePath(userSuppliedFilename)) {
+      const path = normalize(getPathnameFs(
+        new URL(encodeURIComponent(userSuppliedFilename), rootDirectoryObj),
+      ));
+      if (!path.startsWith(getPathnameFs(rootDirectoryObj))) {
+        throw new Error("The path does not start with the root directory.");
+      }
+    } else throw new Error("There are dangerous patterns inside the path.");
 
     return path;
   };
+}
+
+/**
+ * ```js
+ * console.log(isSafePath("/var/www/%2e%2e/etc/passwd")); // true
+ * console.log(isSafePath("/var/www/../etc/passwd")); // true
+ * console.log(isSafePath("/var/www/.../etc/passwd")); // true
+ * console.log(isSafePath("../var/www/../etc/passwd")); // true
+ * console.log(isSafePath("/var/www/html/index.html")); // false
+ * console.log(isSafePath("./var/www/html/index.html")); // false
+ * ```
+ */
+export function isSafePath(path: string): boolean {
+  // Decode URI components to catch encoded traversal sequences
+  const decodedPath = decodeURIComponent(path);
+  // Check if there is a 'poison null byte' in path.
+  if (decodedPath.indexOf("\0") !== -1) {
+    return true;
+  }
+  // Regular expression to match path traversal patterns like '..', '/..', '\..', '%2e%2e', etc.
+  const traversalPattern = /(\.\.\/)|(\.\.\\)|%2e%2e|\/\.\.|\.\.$/i;
+
+  // Check if the decoded path matches the traversal pattern
+  return traversalPattern.test(decodedPath);
 }
 
 export function hasExtension(extension: string) {

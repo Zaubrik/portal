@@ -49,6 +49,9 @@ export {
   type UrlProperties,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/path.js";
 export {
+  isEmpty,
+} from "https://dev.zaubrik.com/sorcery@v0.1.4/collections/length.js";
+export {
   equals,
   isFalse,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/booleans/equality.js";
@@ -58,6 +61,7 @@ export {
   hasPropertyOf,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/objects/membership.js";
 export {
+  isDefined,
   isError,
   isFunction,
   isNull,
@@ -67,3 +71,7 @@ export {
   isUndefined,
   isUrl,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/type.js";
+
+export function isRegExp(input: unknown): input is RegExp {
+  return input instanceof RegExp;
+}

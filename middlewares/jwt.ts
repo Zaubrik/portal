@@ -1,7 +1,11 @@
 import {
   type Context,
   createHttpError,
+  isDefined,
+  isEmpty,
   isHttpError,
+  isPresent,
+  isRegExp,
   type Payload,
   Status,
   type VerifyOptions,
@@ -15,13 +19,49 @@ import {
 
 export type PayloadState = { payload: Payload };
 
-export function curriedVerify(input: CryptoKeyOrUpdateInput) {
+function mergeAudience(
+  oldAudience: VerifyOptions["audience"],
+  newAudience: VerifyOptions["audience"],
+) {
+  if (isRegExp(newAudience)) {
+    return newAudience;
+  } else if (isDefined(newAudience)) {
+    return isRegExp(oldAudience)
+      ? newAudience
+      : [oldAudience, newAudience].flat().filter(isPresent);
+  } else {
+    return oldAudience;
+  }
+}
+
+function mergePredicates(
+  oldPredicates: VerifyOptions["predicates"],
+  newPredicates: VerifyOptions["predicates"],
+) {
+  const predicates = [oldPredicates, newPredicates].flat().filter(isPresent);
+  return isEmpty(predicates) ? undefined : predicates;
+}
+
+export type CurriedVerifyReturnType = ReturnType<typeof curriedVerify>;
+
+export function curriedVerify(
+  input: CryptoKeyOrUpdateInput,
+  options: VerifyOptions = {},
+) {
   const verifyJwtCurried = verifyJwt(input);
-  return (options: VerifyOptions = {}) => {
+  return (moreOptions: VerifyOptions = {}) => {
     return async <C extends Context<PayloadState>>(ctx: C): Promise<C> => {
       try {
+        const mergedOptions: VerifyOptions = { ...options, ...moreOptions };
+        const predicates = mergePredicates(
+          options.predicates,
+          moreOptions.predicates,
+        );
+        const audience = mergeAudience(options.audience, moreOptions.audience);
+        mergedOptions.predicates = predicates;
+        mergedOptions.audience = audience;
         const jwt = getJwtFromBearer(ctx.request.headers);
-        const payload = await verifyJwtCurried(jwt, options);
+        const payload = await verifyJwtCurried(jwt, mergedOptions);
         ctx.state.payload = payload;
         return ctx;
       } catch (error) {

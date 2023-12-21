@@ -1,12 +1,9 @@
-import { type Context, createHttpError, isObject, Status } from "./deps.ts";
+import { type Context, createHttpError, Status } from "./deps.ts";
+import { type HsAlgorithm } from "../functions/crypto/crypto_key.ts";
 import { type JsonObject } from "../functions/json.ts";
-import { verifyHmacSha } from "../functions/crypto/hmac.ts";
+import { defaultSuffix, verifyWebhook } from "../functions/webhook.ts";
 
 export type WebhooksState = { webhookPayload: JsonObject };
-type HsAlgorithm = Parameters<typeof verifyHmacSha>[1];
-
-// https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
-const defaultSuffix = "shaXXX=";
 
 /**
  * A curried middleware which takes a secret, algorithm and a header name. It
@@ -14,32 +11,21 @@ const defaultSuffix = "shaXXX=";
  * Otherwise it throws an error. The body's message must be JSON object and the
  * header needs a suffix with the length of `7` like `sha256=`.
  */
-export function verifyWebhook(
-  webhooksSecret: string,
+export function addWebhookPayloadToState(
+  secret: string,
   algorithm: HsAlgorithm,
   signatureHeader: string,
   { suffixLength = defaultSuffix.length }: { suffixLength?: number } = {},
 ) {
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
-      const signatureHeaderOrNull = ctx.request.headers.get(signatureHeader);
-      if (signatureHeaderOrNull) {
-        const signature = signatureHeaderOrNull.slice(suffixLength ?? 0);
-        if (signature) {
-          const payload = await ctx.request.json();
-          const isVerified = await verifyHmacSha(
-            signature,
-            algorithm,
-            webhooksSecret,
-            JSON.stringify(payload),
-          );
-          if (isVerified && isObject(payload)) {
-            ctx.state.webhookPayload = payload as JsonObject;
-            return ctx;
-          }
-        }
-      }
-      throw new Error();
+      ctx.state.webhookPayload = await verifyWebhook(ctx.request, {
+        secret,
+        algorithm,
+        signatureHeader,
+        suffixLength,
+      });
+      return ctx;
     } catch {
       throw createHttpError(
         Status.BadRequest,

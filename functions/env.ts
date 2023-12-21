@@ -24,5 +24,6 @@ export function assertEnv(env: string[]): string[] {
   }
 }
 
-const [isProductionEnv] = assertEnv(["IS_PRODUCTION"]);
-export const isProduction = JSON.parse(isProductionEnv);
+export const isProduction = JSON.parse(
+  Deno.env.get("IS_PRODUCTION") ?? "false",
+);

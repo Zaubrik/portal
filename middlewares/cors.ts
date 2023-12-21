@@ -4,6 +4,7 @@ type AllowedItems = {
   allowedOrigins?: string | string[];
   allowedHeaders?: string;
   allowedMethods?: string;
+  exposedHeaders?: string;
 };
 type Options = { enableSubdomains?: boolean; allowPreflight?: true };
 
@@ -15,7 +16,12 @@ type Options = { enableSubdomains?: boolean; allowPreflight?: true };
  * preflight requests with the option `allowPreflight`.
  */
 export function enableCors(
-  { allowedOrigins = "*", allowedHeaders, allowedMethods }: AllowedItems = {},
+  {
+    allowedOrigins = "*",
+    allowedHeaders,
+    allowedMethods,
+    exposedHeaders,
+  }: AllowedItems = {},
   { enableSubdomains = false, allowPreflight = true }: Options = {},
 ) {
   return <C extends Context>(ctx: C): C => {
@@ -52,6 +58,12 @@ export function enableCors(
       ctx.response.headers.set(
         "access-control-allow-methods",
         allowedMethods,
+      );
+    }
+    if (isString(exposedHeaders)) {
+      ctx.response.headers.set(
+        "access-control-expose-headers",
+        exposedHeaders,
       );
     }
     if (allowPreflight === true && ctx.request.method === "OPTIONS") {
