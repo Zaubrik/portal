@@ -1,4 +1,4 @@
-import { join } from "./deps.ts";
+import { isString, join } from "./deps.ts";
 import { getPathnameFs } from "./path.ts";
 import { spawnSubprocess } from "./subprocess.ts";
 import { type JsonObject } from "./json.ts";
@@ -33,9 +33,16 @@ export async function commit(path: string | URL, message = "-") {
   }
 }
 
-export async function pull(path: string | URL) {
+export async function pull(path: string | URL, repoUrl?: string | URL) {
   return await spawnSubprocess("git", {
-    args: ["-C", getPathnameFs(path), "pull"],
+    args: repoUrl
+      ? [
+        "-C",
+        getPathnameFs(path),
+        "pull",
+        isString(repoUrl) ? repoUrl : repoUrl.href,
+      ]
+      : ["-C", getPathnameFs(path), "pull"],
   });
 }
 
@@ -44,14 +51,14 @@ export async function clone(
   repoUrl: string | URL,
   cloneName?: string,
 ) {
-  const repo = repoUrl instanceof URL ? repoUrl.href : repoUrl;
+  const url = isString(repoUrl) ? repoUrl : repoUrl.href;
   const pathname = getPathnameFs(path);
   return await spawnSubprocess(
     "git",
     {
       args: cloneName
-        ? ["-C", pathname, "clone", repo, cloneName]
-        : ["-C", pathname, "clone", repo],
+        ? ["-C", pathname, "clone", url, cloneName]
+        : ["-C", pathname, "clone", url],
     },
   );
 }
@@ -70,15 +77,14 @@ export async function pullOrClone(
   const { name, owner } = repository;
   const destination = `${name}${ref ? `@${ref}` : ""}`;
   const repoPath = join(parentDirectory, destination);
+  const url = `https://${
+    token ? `${token}@` : ""
+  }github.com/${owner.login}/${name}`;
   try {
     try {
-      await pull(repoPath);
+      await pull(repoPath, url);
     } catch {
-      await clone(
-        parentDirectory,
-        `https://${token ? `${token}@` : ""}github.com/${owner.login}/${name}`,
-        destination,
-      );
+      await clone(parentDirectory, url, destination);
     }
   } catch {
     await spawnSubprocess(
