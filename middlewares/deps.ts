@@ -3,6 +3,7 @@
  */
 export {
   basename,
+  dirname,
   fromFileUrl,
   isAbsolute,
   join,

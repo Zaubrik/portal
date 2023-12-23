@@ -1,4 +1,11 @@
-import { type Context, isAbsolute, isPresent, isUrl, join } from "./deps.ts";
+import {
+  type Context,
+  dirname,
+  isAbsolute,
+  isPresent,
+  isUrl,
+  join,
+} from "./deps.ts";
 import { getPathnameFs, resolveMainModule } from "../functions/path.ts";
 
 function createLog<C extends Context>(ctx: C) {
@@ -45,6 +52,7 @@ export function queue(f: any) {
 }
 
 function logWithOptions(path: string, options: LoggerOptions) {
+  Deno.mkdirSync(dirname(path), { recursive: true });
   return async ({ logObject, error }: {
     logObject: Record<string, unknown>;
     error: Context["error"];
