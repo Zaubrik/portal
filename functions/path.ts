@@ -125,7 +125,7 @@ export function isSafePath(path: string): boolean {
 }
 
 export function hasExtension(extension: string) {
-  return (pathOrUrl: string | URL): boolean => {
+  return (pathOrUrl: string | URL): pathOrUrl is string => {
     const filepath = getPathnameFs(pathOrUrl);
     return extname(filepath) === extension;
   };

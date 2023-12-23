@@ -1,4 +1,4 @@
-import { base64 } from "../deps.ts";
+import { base64, isString } from "../deps.ts";
 
 export type RsaAlgorithm = "RS256" | "RS384" | "RS512";
 export type HsAlgorithm = "HS256" | "HS384" | "HS512";
@@ -6,6 +6,16 @@ export type Algorithm = RsaAlgorithm | HsAlgorithm;
 
 export function isCryptoKey(input: unknown): input is CryptoKey {
   return input instanceof CryptoKey;
+}
+
+export function isHsAlgorithm(input: unknown): input is HsAlgorithm {
+  const hsAlgorithms: HsAlgorithm[] = ["HS256", "HS384", "HS512"];
+  return isString(input) && hsAlgorithms.includes(input as HsAlgorithm);
+}
+
+export function isRsaAlgorithm(input: unknown): input is RsaAlgorithm {
+  const rsaAlgorithms: RsaAlgorithm[] = ["RS256", "RS384", "RS512"];
+  return isString(input) && rsaAlgorithms.includes(input as RsaAlgorithm);
 }
 
 export function getAlgorithm(

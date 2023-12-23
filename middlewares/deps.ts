@@ -67,11 +67,8 @@ export {
   isNull,
   isObject,
   isPresent,
+  isRegExp,
   isString,
   isUndefined,
   isUrl,
 } from "https://dev.zaubrik.com/sorcery@v0.1.4/type.js";
-
-export function isRegExp(input: unknown): input is RegExp {
-  return input instanceof RegExp;
-}
