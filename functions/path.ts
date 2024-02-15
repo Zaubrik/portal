@@ -1,4 +1,4 @@
-import { extname, fromFileUrl, isAbsolute, normalize } from "./deps.ts";
+import { extname, fromFileUrl, isAbsolute, join, normalize } from "./deps.ts";
 import { decodeUriComponentSafely } from "./url.ts";
 
 /**
@@ -81,9 +81,7 @@ export function securePath(rootDirectory: URL | string) {
   if (rootDirectoryObj.protocol !== "file:") {
     throw new TypeError("Must be a file URL.");
   }
-  if ((rootDirectoryObj.pathname.slice(-1) !== "/")) {
-    throw new TypeError("The path of 'rootDirectory' is not a directory.");
-  }
+  rootDirectoryObj.pathname = join(rootDirectoryObj.pathname, "/");
   return (userSuppliedFilename: string): string => {
     if (isSafePath(userSuppliedFilename)) {
       const path = normalize(getPathnameFs(

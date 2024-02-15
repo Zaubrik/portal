@@ -1,14 +1,13 @@
 import {
-  basename,
   type Context,
   createHttpError,
   isObject,
   isString,
-  normalize,
   semver,
   Status,
 } from "./deps.ts";
 import { type JsonObject } from "../functions/json.ts";
+import { ensureDirAndSymlink } from "../functions/fs.ts";
 import { getDirectoriesFromRepo, pullOrClone } from "../functions/git.ts";
 import { type WebhooksState } from "./webhook.ts";
 
@@ -127,40 +126,6 @@ export function setTypeScriptMimeType<C extends Context>(ctx: C): C {
 
 export function throwNotFoundError<C extends Context>(_ctx: C): never {
   throw createHttpError(Status.NotFound);
-}
-
-function ensureDirAndSymlink(containerPath: string) {
-  const container = basename(containerPath);
-  try {
-    const fileInfo = Deno.lstatSync(containerPath);
-    if (!fileInfo.isDirectory && !fileInfo.isSymlink) {
-      throw new Error(
-        `The container has the wrong file type.`,
-      );
-    }
-  } catch {
-    const parentContainer = normalize(containerPath + "/../../" + container);
-    try {
-      const fileInfo = Deno.lstatSync(parentContainer);
-      if (!fileInfo.isDirectory) {
-        throw new Error(
-          `The parent container has the wrong file type.`,
-        );
-      }
-      Deno.symlinkSync(parentContainer, containerPath);
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    } catch {
-      // It needs the `--unstable` flag at the moment:
-      // Deno.umask(0);
-      Deno.mkdirSync(parentContainer, { recursive: true });
-      Deno.symlinkSync(parentContainer, containerPath);
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    }
-  }
 }
 
 export function serveIndex(

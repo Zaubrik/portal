@@ -42,27 +42,6 @@ Deno.test("securePath", function (): void {
 Deno.test("securePath with bad rootDirectory", function (): void {
   assertThrows(
     (): void => {
-      securePath("static/")("./foo.md");
-    },
-    Error,
-    "The path of 'rootDirectory' is not absolute.",
-  );
-  assertThrows(
-    (): void => {
-      securePath("./static/")("./foo.md");
-    },
-    Error,
-    "The path of 'rootDirectory' is not absolute.",
-  );
-  assertThrows(
-    (): void => {
-      securePath("/static")("./foo.md");
-    },
-    Error,
-    "The path of 'rootDirectory' is not a directory.",
-  );
-  assertThrows(
-    (): void => {
       securePath(new URL("http://example.com/static"))("./foo.md");
     },
     Error,

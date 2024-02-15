@@ -2,7 +2,6 @@
  * std
  */
 export {
-  basename,
   dirname,
   fromFileUrl,
   isAbsolute,
