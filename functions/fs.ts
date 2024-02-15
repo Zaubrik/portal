@@ -51,7 +51,7 @@ export async function isDirectory(path: string): Promise<boolean> {
   try {
     const fileInfo = await Deno.lstat(path);
     return fileInfo.isDirectory;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
