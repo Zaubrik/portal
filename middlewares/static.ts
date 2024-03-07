@@ -56,7 +56,8 @@ export function serveStatic(fsRoot: string | URL = "./static", {
       );
       const fileInfo = await Deno.stat(newPath);
       if (
-        appendTrailingSlash && fileInfo.isDirectory && !newPath.endsWith("/")
+        appendTrailingSlash && fileInfo.isDirectory &&
+        !newPath.endsWith(Deno.build.os === "windows" ? "\\" : "/")
       ) {
         ctx.response = new Response(null, {
           status: Status.MovedPermanently,

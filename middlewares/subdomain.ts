@@ -23,8 +23,9 @@ export function wwwRedirect<C extends Context>(ctx: C): C {
 export function getSubdomainPath(ctx: Context): string {
   try {
     const subdomain = getGroup(ctx.result, "hostname", "subdomain");
+    const pathSeparator = Deno.build.os === "windows" ? "\\" : "/";
     const subdomainDirectoryResult = decodeUriComponentSafely(subdomain)
-      .replaceAll(".", "/");
+      .replaceAll(".", pathSeparator);
     return subdomainDirectoryResult;
   } catch (error) {
     throw createHttpError(Status.InternalServerError, error.message);
