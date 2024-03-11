@@ -83,7 +83,7 @@ export async function createJwt(
 export function verifyJwt(input: CryptoKeyOrUpdateInput) {
   const cryptoKeyPromiseOrNull = isUpdateInput(input)
     ? fetchRsaCryptoKey(input.url, input.algorithm)
-    : null;
+    : input;
   return async (jwt: string, options?: VerifyOptions): Promise<Payload> => {
     const cryptoKeyOrNull = await cryptoKeyPromiseOrNull;
     if (isUpdateInput(input) && isCryptoKey(cryptoKeyOrNull)) {
