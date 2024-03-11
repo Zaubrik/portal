@@ -3,6 +3,7 @@
  */
 export {
   basename,
+  dirname,
   extname,
   fromFileUrl,
   isAbsolute,
@@ -10,7 +11,7 @@ export {
   normalize,
   resolve,
 } from "https://deno.land/std@0.209.0/path/mod.ts";
-export { ensureFile } from "https://deno.land/std@0.209.0/fs/mod.ts";
+export { ensureDir, ensureFile } from "https://deno.land/std@0.209.0/fs/mod.ts";
 export {
   decode as decodeFromHex,
   encode as encodeToHex,

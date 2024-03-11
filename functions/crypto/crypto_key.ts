@@ -1,4 +1,5 @@
-import { base64, isString } from "../deps.ts";
+import { base64, dirname, ensureDir, isString, join } from "../deps.ts";
+import { getPathnameFs } from "../path.ts";
 
 export type RsaAlgorithm = "RS256" | "RS384" | "RS512";
 export type HsAlgorithm = "HS256" | "HS384" | "HS512";
@@ -130,4 +131,74 @@ export async function fetchRsaCryptoKey(
       `Received status code ${response.status} (${response.statusText}) instead of 200-299 range`,
     );
   }
+}
+
+export type CryptoKeyPairsObject = {
+  [key in RsaAlgorithm]?: CryptoKeyPair;
+};
+
+export const rsaAlgorithms: RsaAlgorithm[] = ["RS256", "RS384", "RS512"];
+
+async function importRsaKeyFromPemFile(
+  { privateKeyPath, publicKeyPath }: {
+    privateKeyPath: string | URL;
+    publicKeyPath: string | URL;
+  },
+  alg: RsaAlgorithm,
+): Promise<CryptoKeyPair> {
+  try {
+    const privateKeyPem = await Deno.readTextFile(privateKeyPath);
+    const publicKeyPem = await Deno.readTextFile(publicKeyPath);
+    const privateKey = await importRsaKeyFromPem(privateKeyPem, alg, "private");
+    const publicKey = await importRsaKeyFromPem(publicKeyPem, alg, "public");
+    return { privateKey, publicKey };
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      throw new Error("The key file was not found.");
+    } else {
+      throw new Error("Failed to import the key.");
+    }
+  }
+}
+
+async function exportRsaKeyToPemFile(
+  { privateKeyPath, publicKeyPath }: {
+    privateKeyPath: string;
+    publicKeyPath: string;
+  },
+  { privateKey, publicKey }: CryptoKeyPair,
+): Promise<{ privateKeyPem: string; publicKeyPem: string }> {
+  const privateKeyPem = await generatePemFromRsaKey(privateKey, "private");
+  const publicKeyPem = await generatePemFromRsaKey(publicKey, "public");
+  await ensureDir(dirname(privateKeyPath));
+  await Deno.writeTextFile(privateKeyPath, privateKeyPem);
+  await Deno.writeTextFile(publicKeyPath, publicKeyPem);
+  return { privateKeyPem, publicKeyPem };
+}
+
+/**
+ * A curried middleware which takes an directory as `string` or `URL`. The
+ * returned function takes an `RsaAlgorithm` and returns a `CryptoKeyPair`.
+ * Addionally it imports an existing RSA key from a `pem` file or generates a
+ * new key and stores it in a `pem` file.
+ */
+export async function importOrGenerateAndStoreRsaKeyPair(
+  directory: string | URL,
+): Promise<CryptoKeyPairsObject> {
+  const directoryPath = getPathnameFs(directory);
+  return Object.fromEntries(
+    await Promise.all(rsaAlgorithms.map(async (alg: RsaAlgorithm) => {
+      const keyPaths = {
+        privateKeyPath: join(directoryPath, alg, "/privateKey.pem"),
+        publicKeyPath: join(directoryPath, alg, "/publicKey.pem"),
+      };
+      try {
+        return [alg, await importRsaKeyFromPemFile(keyPaths, alg)];
+      } catch (_error) {
+        const cryptoKeyPair = await generateCryptoKey(alg);
+        await exportRsaKeyToPemFile(keyPaths, cryptoKeyPair);
+        return [alg, cryptoKeyPair];
+      }
+    })),
+  );
 }
