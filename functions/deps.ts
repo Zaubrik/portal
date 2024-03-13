@@ -31,6 +31,7 @@ export {
   type VerifyOptions,
 } from "https://deno.land/x/djwt@v3.0.1/mod.ts";
 export {
+  isNumber,
   isObject,
   isString,
   isUndefined,

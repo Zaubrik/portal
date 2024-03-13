@@ -1,4 +1,4 @@
-import { isObject, isString, isUndefined } from "./deps.ts";
+import { isNumber, isObject, isString, isUndefined } from "./deps.ts";
 import { verifyHmacSha } from "./crypto/hmac.ts";
 import { type HsAlgorithm, isHsAlgorithm } from "./crypto/crypto_key.ts";
 import { type JsonObject } from "./json.ts";
@@ -6,7 +6,7 @@ import { type JsonObject } from "./json.ts";
 export type VerifyWebhookOptions = {
   secret: string;
   algorithm: HsAlgorithm;
-  signatureHeader: string;
+  signatureHeader?: string;
   suffixLength?: number;
 };
 
@@ -18,7 +18,8 @@ export async function verifyWebhook(
   { secret, algorithm, signatureHeader, suffixLength = defaultSuffix.length }:
     VerifyWebhookOptions,
 ): Promise<JsonObject> {
-  const signatureHeaderOrNull = request.headers.get(signatureHeader);
+  const headerName = signatureHeader ?? `X-Hub-Signature-${algorithm.slice(1)}`;
+  const signatureHeaderOrNull = request.headers.get(headerName);
   if (signatureHeaderOrNull) {
     const signature = signatureHeaderOrNull.slice(suffixLength ?? 0);
     if (signature) {
@@ -39,12 +40,13 @@ export async function verifyWebhook(
 
 export function hasValidOptions(input: unknown): input is VerifyWebhookOptions {
   if (isObject(input)) {
-    if (
-      isString(input.secret) && isHsAlgorithm(input.algorithm) &&
-      isString(input.signatureHeader)
-    ) {
-      if (isString(input.defaultSuffix) || isUndefined(input.defaultSuffix)) {
-        return true;
+    if (isString(input.secret) && isHsAlgorithm(input.algorithm)) {
+      if (isNumber(input.suffixLength) || isUndefined(input.suffixLength)) {
+        if (
+          isString(input.signatureHeader) || isUndefined(input.signatureHeader)
+        ) {
+          return true;
+        }
       }
     }
   }
