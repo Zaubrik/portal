@@ -83,7 +83,7 @@ export async function createJwt(
 export function verifyJwt(input: CryptoKeyOrUpdateInput) {
   const cryptoKeyPromiseOrNull = isUpdateInput(input)
     ? fetchRsaCryptoKey(input.url, input.algorithm)
-    : input;
+    : null;
   return async (jwt: string, options?: VerifyOptions): Promise<Payload> => {
     const cryptoKeyOrNull = await cryptoKeyPromiseOrNull;
     if (isUpdateInput(input) && isCryptoKey(cryptoKeyOrNull)) {
@@ -106,6 +106,9 @@ export function verifyJwt(input: CryptoKeyOrUpdateInput) {
   };
 }
 
+/**
+ * Checks if the key used for jwt verification is outdated.
+ */
 export function isOutdated(
   input: Required<UpdateInput>,
   header: unknown,
@@ -113,7 +116,7 @@ export function isOutdated(
   if (isObject(header)) {
     const { ver, alg } = header;
     const verSemver = semver.parse(ver as string);
-    if (semver.parse(verSemver)) {
+    if (verSemver) {
       if (alg === input.algorithm) {
         const keySemVer = semver.parse(input.keySemVer);
         if (semver.eq(verSemver, keySemVer)) {

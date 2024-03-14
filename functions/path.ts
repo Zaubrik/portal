@@ -100,12 +100,12 @@ export function securePath(rootDirectory: URL | string) {
 
 /**
  * ```js
- * console.log(isSafePath("/var/www/%2e%2e/etc/passwd")); // true
- * console.log(isSafePath("/var/www/../etc/passwd")); // true
- * console.log(isSafePath("/var/www/.../etc/passwd")); // true
- * console.log(isSafePath("../var/www/../etc/passwd")); // true
- * console.log(isSafePath("/var/www/html/index.html")); // false
- * console.log(isSafePath("./var/www/html/index.html")); // false
+ * console.log(isSafePath("/var/www/%2e%2e/etc/passwd")); // false
+ * console.log(isSafePath("/var/www/../etc/passwd")); // false
+ * console.log(isSafePath("/var/www/.../etc/passwd")); // false
+ * console.log(isSafePath("../var/www/../etc/passwd")); // false
+ * console.log(isSafePath("/var/www/html/index.html")); // true
+ * console.log(isSafePath("./var/www/html/index.html")); // true
  * ```
  */
 export function isSafePath(path: string): boolean {

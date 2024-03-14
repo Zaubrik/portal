@@ -6,7 +6,7 @@ export * from "./git.ts";
 export * from "./json.ts";
 export * from "./jwt.ts";
 export * from "./path.ts";
-export * from "./response.ts";
+export * from "./storage.ts";
 export * from "./subprocess.ts";
 export * from "./url.ts";
 export * from "./url_pattern.ts";

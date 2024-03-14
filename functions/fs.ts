@@ -1,5 +1,5 @@
 import { basename, join, normalize, resolve } from "./deps.ts";
-import { getPathnameFs } from "./path.ts";
+import { getPathnameFs, resolveMainModule, securePath } from "./path.ts";
 
 export async function getDirEntries(
   pathOrUrl: string | URL,
@@ -47,6 +47,59 @@ export async function getRecursiveFilepaths(
   return filepaths;
 }
 
+export function ensureSymlinkedDirectory(
+  directory: URL | string,
+  subDirectory?: string,
+): string {
+  const containerPath = getPathnameFs(directory);
+  const container = basename(containerPath);
+  let containerIsSymlink = false;
+  try {
+    containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
+  } catch {
+    const parentContainer = normalize(containerPath + "/../../" + container);
+    try {
+      const parentFileInfo = Deno.lstatSync(parentContainer);
+      if (!parentFileInfo.isDirectory) {
+        throw new Error(
+          `The parent container ${parentContainer} has the wrong file type.`,
+        );
+      }
+      Deno.symlinkSync(parentContainer, containerPath);
+      containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
+      console.log(
+        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
+      );
+    } catch {
+      // It needs the `--unstable` flag at the moment:
+      // Deno.umask(0);
+      Deno.mkdirSync(parentContainer, { recursive: true });
+      Deno.symlinkSync(parentContainer, containerPath);
+      containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
+      console.log(
+        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
+      );
+    }
+  }
+  if (!containerIsSymlink) {
+    throw new Error(
+      `The container ${containerPath} is not a symbolic link.`,
+    );
+  }
+
+  if (subDirectory) {
+    const joinedPath = securePath(containerPath)(subDirectory!);
+    Deno.mkdirSync(joinedPath, { recursive: true });
+    return joinedPath;
+  } else {
+    return containerPath;
+  }
+}
+
+export function ensureSymlinkedDataDirectory(subDirectory?: string) {
+  return ensureSymlinkedDirectory(resolveMainModule("./.data"), subDirectory);
+}
+
 export async function isDirectory(path: string): Promise<boolean> {
   try {
     const fileInfo = await Deno.lstat(path);
@@ -60,42 +113,25 @@ export async function isFile(path: string): Promise<boolean> {
   try {
     const fileInfo = await Deno.stat(path);
     return fileInfo.isFile;
-  } catch (error) {
-    console.error("Error checking the path:", error);
+  } catch {
     return false;
   }
 }
 
-export function ensureDirAndSymlink(containerPath: string) {
-  const container = basename(containerPath);
+export function isDirectorySync(path: string): boolean {
   try {
-    const fileInfo = Deno.lstatSync(containerPath);
-    if (!fileInfo.isDirectory && !fileInfo.isSymlink) {
-      throw new Error(
-        `The container has the wrong file type.`,
-      );
-    }
+    const fileInfo = Deno.lstatSync(path);
+    return fileInfo.isDirectory;
   } catch {
-    const parentContainer = normalize(containerPath + "/../../" + container);
-    try {
-      const fileInfo = Deno.lstatSync(parentContainer);
-      if (!fileInfo.isDirectory) {
-        throw new Error(
-          `The parent container has the wrong file type.`,
-        );
-      }
-      Deno.symlinkSync(parentContainer, containerPath);
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    } catch {
-      // It needs the `--unstable` flag at the moment:
-      // Deno.umask(0);
-      Deno.mkdirSync(parentContainer, { recursive: true });
-      Deno.symlinkSync(parentContainer, containerPath);
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    }
+    return false;
+  }
+}
+
+export function isFileSync(path: string): boolean {
+  try {
+    const fileInfo = Deno.statSync(path);
+    return fileInfo.isFile;
+  } catch {
+    return false;
   }
 }

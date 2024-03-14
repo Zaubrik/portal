@@ -7,7 +7,7 @@ import {
   Status,
 } from "./deps.ts";
 import { type JsonObject } from "../functions/json.ts";
-import { ensureDirAndSymlink } from "../functions/fs.ts";
+import { isDirectorySync } from "../functions/fs.ts";
 import { getDirectoriesFromRepo, pullOrClone } from "../functions/git.ts";
 import { type WebhooksState } from "./webhook.ts";
 
@@ -67,7 +67,9 @@ export function pullOrCloneRepo(
   repoOwner: string | string[],
   { repositories, token }: { repositories?: string[]; token?: string } = {},
 ) {
-  ensureDirAndSymlink(containerPath);
+  if (!isDirectorySync(containerPath)) {
+    throw new Error(`The path ${containerPath} is not a directory.`);
+  }
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
     try {
       const webhookPayload = ctx.state.webhookPayload;
