@@ -69,9 +69,11 @@ export function resolveMainModule(relativePath: string): string {
  * @param {string|URL} rootDirectory
  * @return {(userSuppliedFilename: string) => string}
  */
+!newPath.endsWith(Deno.build.os === "windows" ? "\\" : "/");
+
 export function securePath(rootDirectory: URL | string) {
   if (typeof rootDirectory === "string") {
-    if (rootDirectory[0] !== "/") {
+    if (!isAbsolute(rootDirectory)) {
       throw new TypeError("The path of 'rootDirectory' is not absolute.");
     }
   }
