@@ -96,11 +96,13 @@ Deno.test("Throws an error when the source is not a directory", () => {
 });
 
 Deno.test("Creates a symlink between parent and child directory", () => {
+  const sourceDir = resolveMainModule("../.data");
   const targetDir = resolveMainModule("./.data");
   const result = ensureSymlinkedDataDirectorySync("file");
   assertEquals(existsSync(targetDir), true);
   assertEquals(Deno.lstatSync(targetDir).isSymlink, true);
-  assertEquals(result, join(targetDir, "file"));
+  assertEquals(result, targetDir);
 
   cleanup(targetDir);
+  cleanup(sourceDir);
 });

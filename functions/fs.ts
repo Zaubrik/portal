@@ -1,4 +1,4 @@
-import { dirname, join, normalize, resolve } from "./deps.ts";
+import { basename, dirname, join, normalize, resolve } from "./deps.ts";
 import { getPathnameFs, resolveMainModule, securePath } from "./path.ts";
 
 export async function getDirEntries(
@@ -175,10 +175,8 @@ export function ensureSymlinkedDirectorySync(
   if (subDirectory) {
     const joinedPath = securePath(directoryPathTo)(subDirectory!);
     Deno.mkdirSync(joinedPath, { recursive: true });
-    return joinedPath;
-  } else {
-    return directoryPathTo;
   }
+  return directoryPathTo;
 }
 
 export function ensureSymlinkedParentDirectorySync(
@@ -187,7 +185,10 @@ export function ensureSymlinkedParentDirectorySync(
 ): string {
   // Normalize to ensure consistent path separators and remove trailing slashes
   const directoryTo = normalize(getPathnameFs(directory));
-  const directoryFrom = dirname(directoryTo);
+  const directoryFrom = join(
+    dirname(dirname(directoryTo)),
+    basename(directoryTo),
+  );
   return ensureSymlinkedDirectorySync(directoryFrom, directoryTo, {
     subDirectory,
   });
