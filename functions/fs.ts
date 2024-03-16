@@ -137,8 +137,10 @@ export function ensureSymlinkedDirectorySync(
   directoryTo: URL | string,
   { subDirectory }: { subDirectory?: string } = {},
 ): string {
-  const directoryPathFrom = getPathnameFs(directoryFrom);
-  const directoryPathTo = getPathnameFs(directoryTo);
+  const directoryPathFrom = normalize(getPathnameFs(directoryFrom));
+  const directoryPathTo = normalize(getPathnameFs(directoryTo));
+  const directoryPathToDirname = dirname(directoryPathTo);
+  Deno.mkdirSync(directoryPathToDirname, { recursive: true });
   let directoryIsSymlink = false;
   try {
     directoryIsSymlink = Deno.lstatSync(directoryPathTo).isSymlink;

@@ -75,6 +75,9 @@ export function serveStatic(fsRoot: string | URL = "./static", {
           expose: false,
         });
       }
+      if (fileInfo.isFile || fileInfo.isSymlink) {
+        ctx.response.headers.set("X-Disk-Size-Used", `${fileInfo.size}`);
+      }
       ctx.response = response;
       return ctx;
     } catch (error) {
