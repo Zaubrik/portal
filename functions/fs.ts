@@ -1,4 +1,4 @@
-import { basename, join, normalize, resolve } from "./deps.ts";
+import { dirname, join, normalize, resolve } from "./deps.ts";
 import { getPathnameFs, resolveMainModule, securePath } from "./path.ts";
 
 export async function getDirEntries(
@@ -47,62 +47,36 @@ export async function getRecursiveFilepaths(
   return filepaths;
 }
 
-export function ensureSymlinkedDirectory(
-  directory: URL | string,
-  subDirectory?: string,
-): string {
-  const containerPath = getPathnameFs(directory);
-  const container = basename(containerPath);
-  let containerIsSymlink = false;
+export async function exists(path: string): Promise<boolean> {
   try {
-    containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
+    await Deno.lstat(path);
+    return true;
   } catch {
-    const parentContainer = normalize(containerPath + "/../../" + container);
-    try {
-      const parentFileInfo = Deno.lstatSync(parentContainer);
-      if (!parentFileInfo.isDirectory) {
-        throw new Error(
-          `The parent container ${parentContainer} has the wrong file type.`,
-        );
-      }
-      Deno.symlinkSync(parentContainer, containerPath);
-      containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    } catch {
-      // It needs the `--unstable` flag at the moment:
-      // Deno.umask(0);
-      Deno.mkdirSync(parentContainer, { recursive: true });
-      Deno.symlinkSync(parentContainer, containerPath);
-      containerIsSymlink = Deno.lstatSync(containerPath).isSymlink;
-      console.log(
-        `Creating a symlink from ${parentContainer} to ${containerPath}.`,
-      );
-    }
-  }
-  if (!containerIsSymlink) {
-    throw new Error(
-      `The container ${containerPath} is not a symbolic link.`,
-    );
-  }
-
-  if (subDirectory) {
-    const joinedPath = securePath(containerPath)(subDirectory!);
-    Deno.mkdirSync(joinedPath, { recursive: true });
-    return joinedPath;
-  } else {
-    return containerPath;
+    return false;
   }
 }
 
-export function ensureSymlinkedDataDirectory(subDirectory?: string) {
-  return ensureSymlinkedDirectory(resolveMainModule("./.data"), subDirectory);
+export function existsSync(path: string): boolean {
+  try {
+    Deno.lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function isDirectory(path: string): Promise<boolean> {
   try {
     const fileInfo = await Deno.lstat(path);
+    return fileInfo.isDirectory;
+  } catch {
+    return false;
+  }
+}
+
+export function isDirectorySync(path: string): boolean {
+  try {
+    const fileInfo = Deno.lstatSync(path);
     return fileInfo.isDirectory;
   } catch {
     return false;
@@ -118,15 +92,6 @@ export async function isFile(path: string): Promise<boolean> {
   }
 }
 
-export function isDirectorySync(path: string): boolean {
-  try {
-    const fileInfo = Deno.lstatSync(path);
-    return fileInfo.isDirectory;
-  } catch {
-    return false;
-  }
-}
-
 export function isFileSync(path: string): boolean {
   try {
     const fileInfo = Deno.statSync(path);
@@ -134,4 +99,103 @@ export function isFileSync(path: string): boolean {
   } catch {
     return false;
   }
+}
+
+export async function isSymlink(path: string): Promise<boolean> {
+  try {
+    const fileInfo = await Deno.lstat(path);
+    return fileInfo.isSymlink;
+  } catch {
+    return false;
+  }
+}
+
+export function isSymlinkSync(path: string): boolean {
+  try {
+    const fileInfo = Deno.lstatSync(path);
+    return fileInfo.isSymlink;
+  } catch {
+    return false;
+  }
+}
+
+export async function isEmptyDirectory(path: string): Promise<boolean> {
+  try {
+    for await (const _ of Deno.readDir(path)) {
+      return false;
+    }
+    return true;
+    // Handle error (e.g., directory not found, permission denied)
+  } catch {
+    // Return false or throw, depending on your error handling strategy
+    return false;
+  }
+}
+
+export function ensureSymlinkedDirectorySync(
+  directoryFrom: URL | string,
+  directoryTo: URL | string,
+  { subDirectory }: { subDirectory?: string } = {},
+): string {
+  const directoryPathFrom = getPathnameFs(directoryFrom);
+  const directoryPathTo = getPathnameFs(directoryTo);
+  let directoryIsSymlink = false;
+  try {
+    directoryIsSymlink = Deno.lstatSync(directoryPathTo).isSymlink;
+  } catch {
+    try {
+      const directoryFromFileInfo = Deno.lstatSync(directoryPathFrom);
+      if (!directoryFromFileInfo.isDirectory) {
+        throw new Error(
+          `The directory ${directoryPathFrom} has the wrong file type.`,
+        );
+      }
+      Deno.symlinkSync(directoryPathFrom, directoryPathTo);
+      directoryIsSymlink = Deno.lstatSync(directoryPathTo).isSymlink;
+      console.log(
+        `Creating a symlink from ${directoryPathFrom} to ${directoryPathTo}.`,
+      );
+    } catch {
+      // It needs the `--unstable` flag at the moment:
+      // Deno.umask(0);
+      Deno.mkdirSync(directoryPathFrom, { recursive: true });
+      Deno.symlinkSync(directoryPathFrom, directoryPathTo);
+      directoryIsSymlink = Deno.lstatSync(directoryPathTo).isSymlink;
+      console.log(
+        `Creating a symlink from ${directoryPathFrom} to ${directoryPathTo}.`,
+      );
+    }
+  }
+  if (!directoryIsSymlink) {
+    throw new Error(
+      `The directory ${directoryPathTo} is not a symbolic link.`,
+    );
+  }
+
+  if (subDirectory) {
+    const joinedPath = securePath(directoryPathTo)(subDirectory!);
+    Deno.mkdirSync(joinedPath, { recursive: true });
+    return joinedPath;
+  } else {
+    return directoryPathTo;
+  }
+}
+
+export function ensureSymlinkedParentDirectorySync(
+  directory: URL | string,
+  subDirectory?: string,
+): string {
+  // Normalize to ensure consistent path separators and remove trailing slashes
+  const directoryTo = normalize(getPathnameFs(directory));
+  const directoryFrom = dirname(directoryTo);
+  return ensureSymlinkedDirectorySync(directoryFrom, directoryTo, {
+    subDirectory,
+  });
+}
+
+export function ensureSymlinkedDataDirectorySync(subDirectory?: string) {
+  return ensureSymlinkedParentDirectorySync(
+    resolveMainModule("./.data"),
+    subDirectory,
+  );
 }

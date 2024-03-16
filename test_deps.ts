@@ -6,6 +6,11 @@ export {
 } from "https://deno.land/std@0.209.0/testing/asserts.ts";
 export { delay } from "https://deno.land/std@0.209.0/async/delay.ts";
 export {
+  ensureDirSync,
+  existsSync,
+} from "https://deno.land/std@0.209.0/fs/mod.ts";
+
+export {
   compose,
   composeSync,
   createHandler,
