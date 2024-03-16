@@ -1,5 +1,4 @@
 import { assertEquals, assertThrows } from "../test_deps.ts";
-import { join } from "./deps.ts";
 import {
   ensureSymlinkedDataDirectorySync,
   ensureSymlinkedDirectorySync,
