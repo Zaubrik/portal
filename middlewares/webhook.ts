@@ -40,7 +40,7 @@ export function addWebhookPayloadToState(
   };
 }
 
-export function handleIfRightRepository<M extends Context<WebhooksState>>(
+export function handleIfRightRepository(
   // deno-lint-ignore no-explicit-any
   middleware: Middleware<any>,
   repoName: string,
