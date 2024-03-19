@@ -34,3 +34,13 @@ export function addWebhookPayloadToState(
     }
   };
 }
+
+export function handleIfRightRepository(middleware: any, repoName: string) {
+  return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
+    if (ctx.state.webhookPayload?.repository?.name === repoName) {
+      return await middleware(ctx);
+    } else {
+      return ctx;
+    }
+  };
+}
