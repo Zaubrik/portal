@@ -32,10 +32,10 @@ export function fetchResponse(
       }
       const newRequest = new Request(url.href, ctx.request);
       const response = await fetch(newRequest);
-      if (!disableCopying) {
-        ctx.response = copyResponse(ctx.response);
-      } else {
+      if (disableCopying) {
         ctx.response = response;
+      } else {
+        ctx.response = copyResponse(ctx.response);
       }
       return ctx;
     } catch (error) {

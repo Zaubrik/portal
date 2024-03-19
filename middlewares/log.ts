@@ -25,7 +25,7 @@ function createLog<C extends Context>(ctx: C) {
       contentType: ctx.response.headers.get("Content-Type"),
     },
     error: isPresent(ctx.error) ? ctx.error.message : null,
-    user: isPresent(ctx.state.payload?.sub) ? ctx.state.payload.sub : null,
+    sub: isPresent(ctx.state.payload?.sub) ? ctx.state.payload.sub : null,
   };
 }
 
