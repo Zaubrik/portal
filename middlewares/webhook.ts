@@ -1,4 +1,9 @@
-import { type Context, createHttpError, Status } from "./deps.ts";
+import {
+  type Context,
+  createHttpError,
+  type Middleware,
+  Status,
+} from "./deps.ts";
 import { type HsAlgorithm } from "../functions/crypto/crypto_key.ts";
 import { type JsonObject } from "../functions/json.ts";
 import { defaultSuffix, verifyWebhook } from "../functions/webhook.ts";
@@ -35,8 +40,13 @@ export function addWebhookPayloadToState(
   };
 }
 
-export function handleIfRightRepository(middleware: any, repoName: string) {
+export function handleIfRightRepository<M extends Context<WebhooksState>>(
+  // deno-lint-ignore no-explicit-any
+  middleware: Middleware<any>,
+  repoName: string,
+) {
   return async <C extends Context<WebhooksState>>(ctx: C): Promise<C> => {
+    //@ts-ignore because of wrong type
     if (ctx.state.webhookPayload?.repository?.name === repoName) {
       return await middleware(ctx);
     } else {
