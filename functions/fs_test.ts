@@ -1,4 +1,5 @@
 import { assertEquals, assertThrows } from "../test_deps.ts";
+import { join } from "./deps.ts";
 import {
   ensureSymlinkedDataDirectorySync,
   ensureSymlinkedDirectorySync,
@@ -74,6 +75,10 @@ Deno.test("Correctly handles subdirectory creation in the symlinked directory", 
     true,
     "Subdirectory should exist within the symlinked directory",
   );
+  assertEquals(
+    resultPath,
+    join(targetDir, subDirName),
+  );
 
   cleanup(sourceDir);
   cleanup(targetDir);
@@ -97,10 +102,11 @@ Deno.test("Throws an error when the source is not a directory", () => {
 Deno.test("Creates a symlink between parent and child directory", () => {
   const sourceDir = resolveMainModule("../.data");
   const targetDir = resolveMainModule("./.data");
-  const result = ensureSymlinkedDataDirectorySync("file");
+  const subdirectory = "dir";
+  const result = ensureSymlinkedDataDirectorySync(subdirectory);
   assertEquals(existsSync(targetDir), true);
   assertEquals(Deno.lstatSync(targetDir).isSymlink, true);
-  assertEquals(result, targetDir);
+  assertEquals(result, join(targetDir, subdirectory));
 
   cleanup(targetDir);
   cleanup(sourceDir);

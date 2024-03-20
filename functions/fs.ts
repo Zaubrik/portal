@@ -177,8 +177,10 @@ export function ensureSymlinkedDirectorySync(
   if (subDirectory) {
     const joinedPath = securePath(directoryPathTo)(subDirectory!);
     Deno.mkdirSync(joinedPath, { recursive: true });
+    return joinedPath;
+  } else {
+    return directoryPathTo;
   }
-  return directoryPathTo;
 }
 
 export function ensureSymlinkedParentDirectorySync(
