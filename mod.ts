@@ -11,6 +11,7 @@ import { fallBack, logger, type LoggerOptions } from "./middlewares/mod.ts";
 import { resolveMainModule } from "./functions/path.ts";
 
 export type DefaultHandlerOptions =
+  // deno-lint-ignore no-explicit-any
   & { handlerOptions?: ServerHandlerOptions<Record<string, any>> }
   & { loggerOptions?: LoggerOptions }
   & { hostname: string };
@@ -40,7 +41,9 @@ export function createDefaultHandler(
   const handlerOptions = { ...options.handlerOptions, pid };
   const loggerOptions = { debug: true, ...options.loggerOptions };
 
-  const handler = createHandler(Context)(tryMiddleware)(fallBack)(
+  const handler = createHandler(Context, handlerOptions)(tryMiddleware)(
+    fallBack,
+  )(
     logger(options.hostname, loggerOptions),
   );
   return handler;

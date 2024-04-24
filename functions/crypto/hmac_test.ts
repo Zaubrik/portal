@@ -4,7 +4,6 @@ import { createHmacSha, verifyHmacSha } from "./hmac.ts";
 
 const signingInput = "someinput";
 const key = "secret";
-const decoder = new TextDecoder();
 
 Deno.test("create and verify hmac", async function (): Promise<void> {
   const signature = await createHmacSha("HS256", key, signingInput);
