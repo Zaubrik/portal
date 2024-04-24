@@ -1,5 +1,3 @@
-import { decodeFromHex, encodeToHex } from "./deps.ts";
-
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -19,12 +17,4 @@ export function encode(str: string) {
  */
 export function decode(unint8Array: Uint8Array) {
   return decoder.decode(unint8Array);
-}
-
-export function encodeToHexString(uint8Array: Uint8Array): string {
-  return decode(encodeToHex(uint8Array));
-}
-
-export function decodeFromHexString(str: string): Uint8Array {
-  return decodeFromHex(encode(str));
 }

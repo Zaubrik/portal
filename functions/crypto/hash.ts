@@ -1,4 +1,5 @@
-import { decodeFromHexString, encode, encodeToHexString } from "../util.ts";
+import { decodeHex, encodeHex } from "../deps.ts";
+import { encode } from "../util.ts";
 import { safeCompare } from "./comparison.ts";
 
 type HashOptions = { iterations?: number; keyLength?: number };
@@ -64,7 +65,7 @@ export function appendSaltToHash(
   salt: Uint8Array,
   separator = "$",
 ) {
-  return encodeToHexString(hash) + separator + encodeToHexString(salt);
+  return encodeHex(hash) + separator + encodeHex(salt);
 }
 
 export async function comparePassword(
@@ -73,8 +74,8 @@ export async function comparePassword(
   separator = "$",
 ): Promise<boolean> {
   const [hash, saltString] = hashAndSalt.split(separator);
-  const salt = decodeFromHexString(saltString);
-  const newHash = encodeToHexString(
+  const salt = decodeHex(saltString);
+  const newHash = encodeHex(
     await derivePasswordHashWithEncryption(password, salt),
   );
   return safeCompare(hash, newHash);

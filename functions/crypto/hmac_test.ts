@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals } from "../../test_deps.ts";
-import { encodeToHex } from "../deps.ts";
+import { encodeHex } from "../deps.ts";
 import { createHmacSha, verifyHmacSha } from "./hmac.ts";
 
 const signingInput = "someinput";
@@ -8,7 +8,7 @@ const decoder = new TextDecoder();
 
 Deno.test("create and verify hmac", async function (): Promise<void> {
   const signature = await createHmacSha("HS256", key, signingInput);
-  const signatureInHex = decoder.decode(encodeToHex(signature));
+  const signatureInHex = encodeHex(signature);
   assertEquals(
     await verifyHmacSha(signature, "HS256", key, signingInput),
     true,

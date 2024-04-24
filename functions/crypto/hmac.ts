@@ -1,4 +1,5 @@
-import { decodeFromHexString, encode } from "../util.ts";
+import { decodeHex } from "../deps.ts";
+import { encode } from "../util.ts";
 import { type HsAlgorithm } from "./crypto_key.ts";
 
 /**
@@ -70,7 +71,7 @@ export async function verifyHmacSha(
   return await crypto.subtle.verify(
     getAlgorithm(alg),
     cryptoKey,
-    typeof signature === "string" ? decodeFromHexString(signature) : signature,
+    typeof signature === "string" ? decodeHex(signature) : signature,
     encode(signingInput),
   );
 }

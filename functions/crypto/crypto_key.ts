@@ -1,4 +1,11 @@
-import { base64, dirname, ensureDir, isString, join } from "../deps.ts";
+import {
+  decodeBase64,
+  dirname,
+  encodeBase64,
+  ensureDir,
+  isString,
+  join,
+} from "../deps.ts";
 import { getPathnameFs } from "../path.ts";
 
 export type RsaAlgorithm = "RS256" | "RS384" | "RS512";
@@ -78,7 +85,7 @@ export async function generatePemFromRsaKey(
 ) {
   const format = kind === "private" ? "pkcs8" : "spki";
   const exportedKey = await crypto.subtle.exportKey(format, cryptoKey);
-  const exportedAsBase64 = base64.encode(exportedKey);
+  const exportedAsBase64 = encodeBase64(exportedKey);
   return `-----BEGIN ${kind.toUpperCase()} KEY-----\n${exportedAsBase64}\n-----END ${kind.toUpperCase()} KEY-----`;
 }
 
@@ -104,7 +111,7 @@ export async function importRsaKeyFromPem(
     pemHeader.length,
     pem.length - pemFooter.length,
   );
-  const pemBuffer = base64.decode(pemContents).buffer;
+  const pemBuffer = decodeBase64(pemContents).buffer;
   const format = kind === "private" ? "pkcs8" : "spki";
   return await window.crypto.subtle.importKey(
     format,
