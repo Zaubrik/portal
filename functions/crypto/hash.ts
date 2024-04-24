@@ -50,6 +50,9 @@ export async function generateSecret(
   password: string | Uint8Array,
   salt: Uint8Array,
 ): Promise<string> {
+  if (password.length < 1) {
+    throw new Error("The password's length must be at least one.");
+  }
   return appendSaltToHash(
     await derivePasswordHashWithEncryption(password, salt),
     salt,

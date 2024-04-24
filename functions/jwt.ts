@@ -40,6 +40,12 @@ function isUpdateInput(input: any): input is UpdateInput {
   }
 }
 
+export function isCryptoKeyOrUpdateInput(
+  input: unknown,
+): input is CryptoKeyOrUpdateInput {
+  return isCryptoKey(input) || isUpdateInput(input);
+}
+
 export function getJwtFromBearer(headers: Headers): string {
   const authHeader = headers.get("Authorization");
   if (authHeader === null) {

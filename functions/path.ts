@@ -52,7 +52,19 @@ export function getPathnameFs(urlOrPath: URL | string): string {
  * @return {string}
  */
 export function resolveMainModule(relativePath: string): string {
-  return getPathnameFs(new URL(relativePath, Deno.mainModule));
+  return getPathnameFs(resolveMainModuleToUrl(relativePath));
+}
+
+/**
+ * Takes a `string` a pathname to the main module.
+ * ```ts
+ * resolveMainModuleToUrl("./home/foo");
+ * ```
+ * @param {string} relativePath
+ * @return {URL}
+ */
+export function resolveMainModuleToUrl(relativePath: string): URL {
+  return new URL(relativePath, Deno.mainModule);
 }
 
 /**

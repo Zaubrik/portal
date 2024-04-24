@@ -11,18 +11,18 @@ import { getSubdomainPath } from "./subdomain.ts";
 
 type Options = {
   hasSubdomainDirectory?: boolean;
-  disableCopying?: boolean;
+  isCopy?: boolean;
 };
 
 /**
  * A curried middleware which fetches and returns a `Response` from another or
- * partial `URL` object. The option `disableCopying` returns the original and
+ * partial `URL` object. The option `isCopy` returns a copy and not the original,
  * unmutable `Response`. The option `hasSubdomainDirectory` moves subdomains to
  * the pathname.
  */
 export function fetchResponse(
   urlOrProps?: UrlProperties,
-  { hasSubdomainDirectory, disableCopying }: Options = {},
+  { hasSubdomainDirectory, isCopy = true }: Options = {},
 ) {
   return async <C extends Context>(ctx: C): Promise<C> => {
     try {
@@ -32,10 +32,10 @@ export function fetchResponse(
       }
       const newRequest = new Request(url.href, ctx.request);
       const response = await fetch(newRequest);
-      if (disableCopying) {
-        ctx.response = response;
+      if (isCopy) {
+        ctx.response = copyResponse(response);
       } else {
-        ctx.response = copyResponse(ctx.response);
+        ctx.response = response;
       }
       return ctx;
     } catch (error) {

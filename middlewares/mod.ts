@@ -4,6 +4,7 @@ export * from "./fetch.ts";
 export * from "./jwt.ts";
 export * from "./log.ts";
 export * from "./repository.ts";
+export * from "./rpc.ts";
 export * from "./smtp.ts";
 export * from "./static.ts";
 export * from "./subdomain.ts";

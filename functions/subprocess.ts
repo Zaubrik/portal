@@ -1,6 +1,6 @@
 import { ensureFile } from "./deps.ts";
 import { decode } from "./util.ts";
-import { getPathnameFs } from "./path.ts";
+import { getPathnameFs, resolveMainModule } from "./path.ts";
 
 type CommandOptions = ConstructorParameters<typeof Deno.Command>[1];
 
@@ -38,7 +38,7 @@ export async function spawnSubprocess(
     } else {
       const err = decode(stderr) ? decode(stderr) : decode(stdout);
       if (options?.debug) {
-        const path = getPathnameFs(new URL(options.debug, Deno.mainModule));
+        const path = getPathnameFs(resolveMainModule(options.debug));
         await ensureFile(path);
         await Deno.writeTextFile(path, `${JSON.stringify([err])},`, {
           append: true,

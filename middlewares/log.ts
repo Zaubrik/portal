@@ -71,7 +71,7 @@ function logWithOptions(path: string, options: LoggerOptions) {
   };
 }
 
-type LoggerOptions = {
+export type LoggerOptions = {
   print?: boolean;
   file?: boolean;
   debug?: boolean;
@@ -83,17 +83,26 @@ type LoggerOptions = {
  * ```
  */
 export function logger(
-  url: string | URL = "access.log",
+  path: string | URL = "access.log",
   { print = true, file = true, debug = false }: LoggerOptions = {},
 ) {
-  const path = isUrl(url) || isAbsolute(url)
-    ? getPathnameFs(url)
-    : resolveMainModule("./" + join(".log/", url));
-  const log = logWithOptions(path, { print, file, debug });
+  const absolutePath = isUrl(path) || isAbsolute(path)
+    ? getPathnameFs(path)
+    : resolveMainModule("./" + join(".log/", path));
+  const log = logWithOptions(absolutePath, { print, file, debug });
   const generator = queue(log);
   return <C extends Context>(ctx: C): C => {
     const logObject = createLog(ctx);
     generator.next({ logObject, error: ctx.error });
+    return ctx;
+  };
+}
+
+export function logCtx(property?: keyof Context) {
+  return <C extends Context>(ctx: C): C => {
+    const value = property ? ctx[property] : ctx;
+    const prefix = property ? `ctx["${property}"]:` : "ctx:";
+    console.log(prefix, value);
     return ctx;
   };
 }

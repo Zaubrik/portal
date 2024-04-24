@@ -1,12 +1,19 @@
 export * from "./functions/mod.ts";
 export * from "./middlewares/mod.ts";
 
-import { Context, createHandler, type Middleware } from "./middlewares/deps.ts";
-import { fallBack, logger } from "./middlewares/mod.ts";
+import {
+  Context,
+  createHandler,
+  type Middleware,
+  type ServerHandlerOptions,
+} from "./middlewares/deps.ts";
+import { fallBack, logger, type LoggerOptions } from "./middlewares/mod.ts";
+import { resolveMainModule } from "./functions/path.ts";
 
-type Options =
-  & { serveOptions?: Deno.ServeOptions & Deno.ServeTlsOptions }
-  & { logFile?: Parameters<typeof logger>[0] };
+export type DefaultHandlerOptions =
+  & { handlerOptions?: ServerHandlerOptions<Record<string, any>> }
+  & { loggerOptions?: LoggerOptions }
+  & { hostname: string };
 
 /**
  * Starts a default HTTP server and handles incoming requests using
@@ -17,17 +24,24 @@ type Options =
  * @example
  * ```ts
  * import { serveStatic } from "./middlewares/mod.ts";
- * serve(serveStatic("./examples/static/"));
+ * createDefaultHandler(serveStatic("./examples/static/"), { hostname: "zaurbik.de" });
  * ```
  */
-export function serve(
+export function createDefaultHandler(
   tryMiddleware: Middleware<Context>,
-  options: Options = {},
+  options: DefaultHandlerOptions,
 ) {
+  const pid = {
+    path: resolveMainModule("./.pid"),
+    name: options.hostname,
+    append: true,
+    ...options.handlerOptions?.pid,
+  };
+  const handlerOptions = { ...options.handlerOptions, pid };
+  const loggerOptions = { debug: true, ...options.loggerOptions };
+
   const handler = createHandler(Context)(tryMiddleware)(fallBack)(
-    logger(options.logFile),
+    logger(options.hostname, loggerOptions),
   );
-  return options.serveOptions
-    ? Deno.serve(options.serveOptions, handler)
-    : Deno.serve(handler);
+  return handler;
 }
