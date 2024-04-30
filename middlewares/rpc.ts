@@ -1,7 +1,6 @@
 import {
   type AuthInput,
   type Context,
-  isFunction,
   type Methods,
   type Options,
   respond,
@@ -9,10 +8,13 @@ import {
 import { verifyJwt } from "../functions/jwt.ts";
 
 function addVerifyFunctions(authInput: AuthInput) {
-  const verify = isFunction(authInput.verification)
-    ? authInput.verification
-    : verifyJwt(authInput.verification);
-  return { ...authInput, verification: verify };
+  const verification = authInput.verification;
+  return {
+    ...authInput,
+    verification: typeof verification === "function"
+      ? verification
+      : verifyJwt(verification),
+  };
 }
 
 export function rpcRespond(
