@@ -10,17 +10,17 @@ export {
   join,
   normalize,
   resolve,
-} from "https://deno.land/std@0.223.0/path/mod.ts";
-export { ensureDir, ensureFile } from "https://deno.land/std@0.223.0/fs/mod.ts";
+} from "https://deno.land/std@0.224.0/path/mod.ts";
+export { ensureDir, ensureFile } from "https://deno.land/std@0.224.0/fs/mod.ts";
 export {
   decodeHex,
   encodeHex,
-} from "https://deno.land/std@0.223.0/encoding/hex.ts";
+} from "https://deno.land/std@0.224.0/encoding/hex.ts";
 export {
   decodeBase64,
   encodeBase64,
-} from "https://deno.land/std@0.223.0/encoding/base64.ts";
-export * as semver from "https://deno.land/std@0.223.0/semver/mod.ts";
+} from "https://deno.land/std@0.224.0/encoding/base64.ts";
+export * as semver from "https://deno.land/std@0.224.0/semver/mod.ts";
 
 /**
  * Zaubrik
