@@ -11,7 +11,7 @@ import { isCryptoKeyOrUpdateInput, verifyJwt } from "../functions/jwt.ts";
 export function rpcRespond(
   methods: Methods,
   options: Options & { methodsUrl?: URL } = {},
-  authInput?: AuthInput,
+  authInput?: AuthInput | AuthInput[],
 ) {
   const verificationInputOrUndefined = authInput?.verification;
   const verify = isFunction(verificationInputOrUndefined)
