@@ -1,5 +1,10 @@
 import { basename, dirname, join, normalize, resolve } from "./deps.ts";
-import { getPathnameFs, resolveMainModule, securePath } from "./path.ts";
+import {
+  getPathnameFs,
+  hasExtension,
+  resolveMainModule,
+  securePath,
+} from "./path.ts";
 
 export async function getDirEntries(
   pathOrUrl: string | URL,
@@ -15,6 +20,18 @@ export async function getDirEntries(
     }
   }
   return dirEntries;
+}
+
+export async function getDirectories(directory: string) {
+  return (await getDirEntries(directory)).filter((
+    entry,
+  ) => entry.isDirectory).map((entry) => entry.name);
+}
+
+export async function getFiles(directory: string) {
+  return (await getDirEntries(directory)).filter((
+    entry,
+  ) => entry.isFile).map((entry) => entry.name);
 }
 
 export async function getFilepaths(
@@ -45,6 +62,19 @@ export async function getRecursiveFilepaths(
     }
   }
   return filepaths;
+}
+
+export function readTextFilesByExtension(extension: string) {
+  if (!extension.startsWith(".")) {
+    throw new Error("The extension must start with a dot.");
+  }
+  return async (pathOrUrl: string | URL) => {
+    return await Promise.all(
+      (await getRecursiveFilepaths(pathOrUrl))
+        .filter(hasExtension(extension))
+        .map(async (filePath) => [await Deno.readTextFile(filePath), filePath]),
+    );
+  };
 }
 
 export async function exists(path: string): Promise<boolean> {
