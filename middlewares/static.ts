@@ -89,7 +89,7 @@ export function serveStatic(fsRoot: string | URL = "./static", {
   };
 }
 
-export function serveStaticDir(fsRoot: string) {
+export function serveStaticDirectory(fsRoot: string) {
   return async <C extends Context>(ctx: C) => {
     ctx.response = await serveDir(ctx.request, {
       fsRoot,
