@@ -5,17 +5,7 @@ import {
   type Options,
   respond,
 } from "./deps.ts";
-import { verifyJwt } from "../functions/jwt.ts";
-
-function addVerifyFunctions(authInput: AuthInput) {
-  const verification = authInput.verification;
-  return {
-    ...authInput,
-    verification: typeof verification === "function"
-      ? verification
-      : verifyJwt(verification),
-  };
-}
+import { ensureVerifyFunction } from "../functions/jwt.ts";
 
 export function rpcRespond(
   methods: Methods,
@@ -23,7 +13,7 @@ export function rpcRespond(
   authInput?: AuthInput | AuthInput[],
 ) {
   const authInputArray = authInput
-    ? [authInput].flat().map(addVerifyFunctions)
+    ? [authInput].flat().map(ensureVerifyFunction)
     : undefined;
   return async <C extends Context>(ctx: C) => {
     const rpcMethods = options.methodsUrl
