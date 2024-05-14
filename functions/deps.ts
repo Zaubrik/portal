@@ -43,4 +43,4 @@ export {
 } from "https://dev.zaubrik.com/sorcery@v0.1.5/type.js";
 export {
   type AuthInput,
-} from "https://dev.zaubrik.com/schicksal@v0.1.3/server/response.ts";
+} from "https://dev.zaubrik.com/schicksal@v0.1.4/server/mod.ts";

@@ -47,10 +47,11 @@ export {
 } from "https://dev.zaubrik.com/composium@v0.1.2/mod.ts";
 export {
   type AuthInput,
+  ensureVerify,
   type Methods,
   type Options,
   respond,
-} from "https://dev.zaubrik.com/schicksal@v0.1.3/server/response.ts";
+} from "https://dev.zaubrik.com/schicksal@v0.1.4/server/response.ts";
 
 export {
   mergeUrl,

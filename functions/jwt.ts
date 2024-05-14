@@ -1,5 +1,4 @@
 import {
-  type AuthInput,
   create,
   decodeJwt,
   isObject,
@@ -85,16 +84,6 @@ export async function createJwt(
   } else {
     throw new Error("Invalid input.");
   }
-}
-
-export function ensureVerifyFunction(authInput: AuthInput) {
-  const verification = authInput.verification;
-  return {
-    ...authInput,
-    verification: typeof verification === "function"
-      ? verification
-      : verifyJwt(verification),
-  };
 }
 
 export function verifyJwt(input: CryptoKeyOrUpdateInput) {
