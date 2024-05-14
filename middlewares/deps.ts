@@ -42,9 +42,9 @@ export {
   assertError,
   Context,
   createHandler,
+  type HandlerOptions,
   type Middleware,
-  type ServerHandlerOptions,
-} from "https://dev.zaubrik.com/composium@v0.1.1/mod.ts";
+} from "https://dev.zaubrik.com/composium@v0.1.2/mod.ts";
 export {
   type AuthInput,
   type Methods,

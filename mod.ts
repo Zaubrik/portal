@@ -4,15 +4,15 @@ export * from "./middlewares/mod.ts";
 import {
   Context,
   createHandler,
+  type HandlerOptions,
   type Middleware,
-  type ServerHandlerOptions,
 } from "./middlewares/deps.ts";
 import { fallBack, logger, type LoggerOptions } from "./middlewares/mod.ts";
 import { resolveMainModule } from "./functions/path.ts";
 
 export type DefaultHandlerOptions =
   // deno-lint-ignore no-explicit-any
-  & { handlerOptions?: ServerHandlerOptions<Record<string, any>> }
+  & { handlerOptions?: HandlerOptions<Record<string, any>> }
   & { loggerOptions?: LoggerOptions }
   & { hostname: string };
 
