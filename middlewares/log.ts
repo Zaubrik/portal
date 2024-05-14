@@ -58,14 +58,14 @@ function logWithOptions(path: string, options: LoggerOptions) {
     error: Context["error"];
   }) => {
     const message = JSON.stringify(logObject);
+    if (options.debug && isPresent(error)) {
+      console.error(error);
+    }
     if (options.print) {
       console.log(message);
     }
     if (options.file) {
       await Deno.writeTextFile(path, message + "\n", { append: true });
-    }
-    if (options.debug && isPresent(error)) {
-      console.error(error);
     }
     return message;
   };
