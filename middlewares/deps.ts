@@ -14,7 +14,10 @@ export {
 } from "https://deno.land/std@0.224.0/fs/mod.ts";
 export * from "https://deno.land/std@0.206.0/http/http_errors.ts";
 export * from "https://deno.land/std@0.209.0/http/http_status.ts";
-export { serveFile } from "https://deno.land/std@0.224.0/http/file_server.ts";
+export {
+  serveDir,
+  serveFile,
+} from "https://deno.land/std@0.224.0/http/file_server.ts";
 export * as semver from "https://deno.land/std@0.224.0/semver/mod.ts";
 
 /**

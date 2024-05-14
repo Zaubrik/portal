@@ -5,6 +5,7 @@ import {
   isHttpError,
   isString,
   join,
+  serveDir,
   serveFile,
   Status,
 } from "./deps.ts";
@@ -85,5 +86,17 @@ export function serveStatic(fsRoot: string | URL = "./static", {
         ? error
         : createHttpError(Status.NotFound, error.message, { expose: false });
     }
+  };
+}
+
+export function serveStaticDir(fsRoot: string) {
+  return async <C extends Context>(ctx: C) => {
+    ctx.response = await serveDir(ctx.request, {
+      fsRoot,
+      showDirListing: true,
+      quiet: true,
+      showIndex: false,
+    });
+    return ctx;
   };
 }
