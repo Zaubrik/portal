@@ -5,6 +5,7 @@ import {
   isPresent,
   isUrl,
   join,
+  queue,
 } from "./deps.ts";
 import { getPathnameFs, resolveMainModule } from "../functions/path.ts";
 
@@ -29,28 +30,6 @@ function createLog<C extends Context>(ctx: C) {
   };
 }
 
-// deno-lint-ignore no-explicit-any
-export function queue(f: any) {
-  // deno-lint-ignore no-explicit-any
-  async function* makeGenerator(): any {
-    // deno-lint-ignore no-explicit-any
-    let passedValue: any;
-    // deno-lint-ignore no-explicit-any
-    let result: any;
-    let i = 0;
-    while (true) {
-      // deno-lint-ignore no-explicit-any
-      passedValue = yield result as any;
-      // deno-lint-ignore no-explicit-any
-      result = await f(passedValue, i) as any;
-      i++;
-    }
-  }
-  const generator = makeGenerator();
-  generator.next();
-  return generator;
-}
-
 function logWithOptions(path: string, options: LoggerOptions) {
   Deno.mkdirSync(dirname(path), { recursive: true });
   return async ({ logObject, error }: {
@@ -61,7 +40,7 @@ function logWithOptions(path: string, options: LoggerOptions) {
       console.error(error);
     }
     if (options.print) {
-      console.log(JSON.stringify(logObject, null, 4));
+      console.log(JSON.stringify(logObject, null, 2));
     }
     if (options.file) {
       await Deno.writeTextFile(path, JSON.stringify(logObject) + "\n", {
