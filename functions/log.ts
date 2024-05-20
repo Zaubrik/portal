@@ -9,10 +9,16 @@ import { ensureSymlinkedDataDirectorySync } from "./fs.ts";
  * ```
  */
 export function logTo(path: string | URL) {
-  const dataPath = isUrl(path)
-    ? path
-    : join(ensureSymlinkedDataDirectorySync(dirname(path)), basename(path));
   return queue(async (message: string) => {
-    await Deno.writeTextFile(dataPath, message + "\n", { append: true });
+    await Deno.writeTextFile(path, message + "\n", { append: true });
   });
+}
+
+export function logToSymlinkedData(relativeFilepath: string) {
+  return logTo(
+    join(
+      ensureSymlinkedDataDirectorySync(dirname(relativeFilepath)),
+      basename(relativeFilepath),
+    ),
+  );
 }
