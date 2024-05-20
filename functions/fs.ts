@@ -1,4 +1,11 @@
-import { basename, dirname, join, normalize, resolve } from "./deps.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  normalize,
+  resolve,
+} from "./deps.ts";
 import {
   getPathnameFs,
   hasExtension,
@@ -169,6 +176,9 @@ export function ensureSymlinkedDirectorySync(
 ): string {
   const directoryPathFrom = normalize(getPathnameFs(directoryFrom));
   const directoryPathTo = normalize(getPathnameFs(directoryTo));
+  if (extname(directoryPathFrom) || extname(directoryPathTo)) {
+    throw new Error("The directories must have no file extension.");
+  }
   const directoryPathToDirname = dirname(directoryPathTo);
   Deno.mkdirSync(directoryPathToDirname, { recursive: true });
   let directoryIsSymlink = false;

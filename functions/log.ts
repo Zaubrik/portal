@@ -3,7 +3,7 @@ import { ensureSymlinkedDataDirectorySync } from "./fs.ts";
 
 /**
  * ```js
- * const log = logTo("server.localhost", "./worker.log");
+ * const log = logTo("./server.localhost/worker.log");
  * log.next("aaaaaaaaa");
  * log.next("bbbbbbbbb");
  * ```

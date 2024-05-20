@@ -5,6 +5,7 @@ export * from "./fs.ts";
 export * from "./git.ts";
 export * from "./json.ts";
 export * from "./jwt.ts";
+export * from "./log.ts";
 export * from "./path.ts";
 export * from "./storage.ts";
 export * from "./subprocess.ts";
