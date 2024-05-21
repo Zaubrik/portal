@@ -1,4 +1,4 @@
-import { basename, dirname, isUrl, join, queue } from "./deps.ts";
+import { basename, dirname, join, queue } from "./deps.ts";
 import { ensureSymlinkedDataDirectorySync } from "./fs.ts";
 
 /**
