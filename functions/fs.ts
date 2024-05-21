@@ -213,10 +213,18 @@ export function ensureSymlinkedDirectorySync(
       `The directory ${directoryPathTo} is not a symbolic link.`,
     );
   }
-
   if (subDirectory) {
     const joinedPath = securePath(directoryPathTo)(subDirectory!);
-    Deno.mkdirSync(joinedPath, { recursive: true });
+    try {
+      Deno.mkdirSync(joinedPath, { recursive: true });
+    } catch {
+      if (directoryIsSymlink) {
+        Deno.removeSync(directoryPathTo, { recursive: true });
+        ensureSymlinkedDirectorySync(directoryFrom, directoryTo);
+      } else {
+        throw new Error("This error must not happen.");
+      }
+    }
     return joinedPath;
   } else {
     return directoryPathTo;
