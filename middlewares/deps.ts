@@ -54,7 +54,7 @@ export {
   type Methods,
   type Options,
   respond,
-} from "https://dev.zaubrik.com/schicksal@v0.1.4/server/response.ts";
+} from "https://dev.zaubrik.com/schicksal@v0.1.6/server/mod.ts";
 
 export {
   mergeUrl,
